@@ -18,6 +18,7 @@ void test('the three restaurants have distinct spatial products and complete loc
   assert.deepEqual(restaurants.map((restaurant) => restaurant.name), ['Şəki', 'Həyat', 'Xəzri']);
   assert.equal(new Set(restaurants.map((restaurant) => restaurant.planVariant)).size, 3);
   assert.equal(new Set(restaurants.map((restaurant) => restaurant.image)).size, 3);
+  assert.equal(restaurants.every((restaurant) => restaurant.image.endsWith('.webp')), true);
 
   for (const restaurant of restaurants) {
     assert.equal(restaurant.tables.length >= 8, true);

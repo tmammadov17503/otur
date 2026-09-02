@@ -16,6 +16,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { clampGuestCount, filterRestaurants, getFirstAvailableTableId, isTableAvailableForSlot } from '@/lib/booking';
+import { assetUrl } from '@/lib/assets';
 import { copy, localize, localizeTag, quickFilters, restaurants, times, type Language } from '@/lib/otur-data';
 
 type ExperienceView = 'plan' | 'preview';
@@ -38,7 +39,7 @@ function OturLogo() {
 }
 
 function SceneImage({ src, scene = 0, className = '', label }: { src: string; scene?: number; className?: string; label: string }) {
-  return <div className={`scene-image scene-${scene} ${className}`} style={{ backgroundImage: `url(${src})` }}><span className="sr-only">{label}</span></div>;
+  return <div className={`scene-image scene-${scene} ${className}`} style={{ backgroundImage: `url(${assetUrl(src, import.meta.env.BASE_URL)})` }}><span className="sr-only">{label}</span></div>;
 }
 
 export default function Home() {
@@ -127,7 +128,7 @@ export default function Home() {
 
       <section className="hero" aria-labelledby="hero-title">
         <div className="hero-copy"><span className="overline">{t.overline}</span><h1 id="hero-title">{t.headline}</h1><p>{t.subhead}</p><p className="brand-promise"><CircleDot />{t.promise}</p></div>
-        <div className="hero-model" aria-label={t.promise}><Image src="/og.png" alt={t.promise} fill priority sizes="(max-width: 760px) 100vw, 55vw" /><div className="hero-model-wash" /><div className="hero-sequence"><span className="active">01 · {t.heroStep1}</span><span>02 · {t.heroStep2}</span><span>03 · {t.heroStep3}</span></div><div className="hero-table-marker"><i /><strong>08</strong><small>{t.selected}</small></div></div>
+        <div className="hero-model" aria-label={t.promise}><Image src={assetUrl('/og.webp', import.meta.env.BASE_URL)} alt={t.promise} fill priority sizes="(max-width: 760px) 100vw, 55vw" /><div className="hero-model-wash" /><div className="hero-sequence"><span className="active">01 · {t.heroStep1}</span><span>02 · {t.heroStep2}</span><span>03 · {t.heroStep3}</span></div><div className="hero-table-marker"><i /><strong>08</strong><small>{t.selected}</small></div></div>
       </section>
 
       <section className="search-rail" aria-label={t.find}>

@@ -62,7 +62,7 @@ export const restaurants: Restaurant[] = [
     hours: '18:00 — 00:00',
     rating: '4.8',
     tags: ['traditional', 'quiet', 'date'],
-    image: '/restaurants/seki-grid.png',
+    image: '/restaurants/seki-grid.webp',
     planVariant: 'heritage',
     tables: [
       { id: 'S02', capacity: 2, left: 15, top: 20, shape: 'round', tags: ['window', 'quiet'], detail: L('Daş divar boyunca sakit pəncərə masası', 'A quiet window table along the stone wall', 'Тихий стол у окна вдоль каменной стены'), baseAvailable: true, scene: 1 },
@@ -86,7 +86,7 @@ export const restaurants: Restaurant[] = [
     hours: '12:00 — 00:00',
     rating: '4.7',
     tags: ['garden', 'terrace', 'family', 'new'],
-    image: '/restaurants/hayat-grid.png',
+    image: '/restaurants/hayat-grid.webp',
     planVariant: 'garden',
     tables: [
       { id: 'H01', capacity: 2, left: 13, top: 24, shape: 'round', tags: ['garden', 'quiet'], detail: L('Bitkilər arasında sakit iki nəfərlik yer', 'A quiet table for two among the plants', 'Тихий стол для двоих среди зелени'), baseAvailable: true, scene: 1 },
@@ -110,7 +110,7 @@ export const restaurants: Restaurant[] = [
     hours: '13:00 — 01:00',
     rating: '4.9',
     tags: ['sea', 'terrace', 'sunset', 'date'],
-    image: '/restaurants/xazri-grid.png',
+    image: '/restaurants/xazri-grid.webp',
     planVariant: 'coastal',
     tables: [
       { id: 'X02', capacity: 2, left: 12, top: 20, shape: 'round', tags: ['sea', 'window'], detail: L('Birinci sırada Xəzər mənzərəsi', 'Front-row Caspian view by the glass', 'Первая линия у стекла с видом на Каспий'), baseAvailable: true, scene: 1 },
