@@ -9,8 +9,8 @@
     "dev": "vinext dev",
     "build": "vinext build",
     "start": "wrangler dev --config dist/server/wrangler.json",
-    "test": "node --test --test-isolation=none lib/booking.test.js",
-    "test:coverage": "node --test --test-isolation=none --experimental-test-coverage lib/booking.test.js",
+    "test": "node --test --test-isolation=none --experimental-strip-types lib/booking.test.js lib/otur-data.test.ts",
+    "test:coverage": "node --test --test-isolation=none --experimental-strip-types --experimental-test-coverage lib/booking.test.js lib/otur-data.test.ts",
     "lint": "oxlint",
     "format": "oxfmt"
   },

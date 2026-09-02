@@ -1,478 +1,172 @@
 'use client';
 
-import { FormEvent, useMemo, useState } from 'react';
-import type { CSSProperties } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import Image from 'next/image';
 import {
-  ArrowLeft,
-  ArrowRight,
-  CalendarDays,
-  CalendarPlus,
-  Check,
-  ChevronDown,
-  CircleDot,
-  Clock3,
-  Compass,
-  DoorOpen,
-  Eye,
-  Grip,
-  LocateFixed,
-  Mail,
-  MapPin,
-  Menu,
-  Minus,
-  Move,
-  Plus,
-  Share2,
-  Star,
-  Users,
-  X,
+  ArrowLeft, ArrowRight, CalendarDays, Check, ChevronDown, CircleDot, Clock3, Compass,
+  Eye, FileUp, Grip, Layers3, MapPin, Menu, Minus, Move, Plus, Search, Sparkles,
+  Star, Tags, Users, X,
 } from 'lucide-react';
 
+import { BookingDialog } from '@/components/otur/booking-dialog';
+import { FloorPlan } from '@/components/otur/floor-plan';
+import { PartnerDialog } from '@/components/otur/partner-dialog';
+import { TableGlyph } from '@/components/otur/table-glyph';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { clampGuestCount, isTableAvailableForSlot } from '@/lib/booking';
+import { clampGuestCount, filterRestaurants, getFirstAvailableTableId, isTableAvailableForSlot } from '@/lib/booking';
+import { copy, localize, localizeTag, quickFilters, restaurants, times, type Language } from '@/lib/otur-data';
 
-type Language = 'EN' | 'AZ';
 type ExperienceView = 'plan' | 'preview';
 
-type RestaurantTable = {
-  id: string;
-  capacity: number;
-  left: number;
-  top: number;
-  shape: 'round' | 'square' | 'long';
-  zone: 'Window' | 'Terrace' | 'Quiet' | 'Bar' | 'Private';
-  detail: string;
-  baseAvailable: boolean;
+const filterTagMap: Record<string, string | null> = {
+  Tonight: null, Terrace: 'terrace', 'Sea view': 'sea', 'Date night': 'date',
+  Quiet: 'quiet', Traditional: 'traditional', New: 'new',
 };
 
-const tables: RestaurantTable[] = [
-  { id: 'T02', capacity: 2, left: 15, top: 19, shape: 'round', zone: 'Window', detail: 'Caspian light · intimate', baseAvailable: true },
-  { id: 'T03', capacity: 4, left: 34, top: 19, shape: 'round', zone: 'Window', detail: 'Wide window · social', baseAvailable: true },
-  { id: 'T06', capacity: 4, left: 63, top: 19, shape: 'square', zone: 'Terrace', detail: 'Open air · sunset side', baseAvailable: true },
-  { id: 'T08', capacity: 2, left: 85, top: 23, shape: 'round', zone: 'Terrace', detail: 'Garden edge · soft light', baseAvailable: false },
-  { id: 'T11', capacity: 4, left: 19, top: 58, shape: 'square', zone: 'Quiet', detail: 'Screened corner · low traffic', baseAvailable: true },
-  { id: 'T14', capacity: 2, left: 42, top: 57, shape: 'round', zone: 'Window', detail: 'Window · quiet · best view', baseAvailable: true },
-  { id: 'T16', capacity: 6, left: 68, top: 57, shape: 'long', zone: 'Bar', detail: 'Near the bar · lively', baseAvailable: true },
-  { id: 'T17', capacity: 2, left: 87, top: 60, shape: 'round', zone: 'Private', detail: 'Stone screen · secluded', baseAvailable: true },
-];
-
-const times = ['18:30', '19:00', '19:30', '20:00', '20:30', '21:00'];
-
-const partnerTools = [
-  { label: 'Move tables', icon: Move },
-  { label: 'Add table', icon: Plus },
-  { label: 'Set capacity', icon: Users },
-  { label: 'Combine', icon: Grip },
-  { label: 'Unavailable', icon: X },
-  { label: 'Reservations', icon: CalendarDays },
-];
-
-const copy = {
-  EN: {
-    explore: 'Explore',
-    partners: 'For restaurants',
-    headline: 'Your table. Your view.',
-    subhead: 'Discover restaurants in Baku and choose exactly where you want to sit.',
-    promise: 'Know where you’ll sit before you arrive.',
-    where: 'Where?',
-    when: 'When?',
-    guests: 'Guests?',
-    find: 'Find a table',
-    curated: 'Curated for tonight',
-    choose: 'Choose your exact table',
-    planHelp: 'Available tables change with your date, time, and party size.',
-    see: 'See this table',
-    reserve: 'Reserve this table',
-    back: 'Back to floor plan',
-    selected: 'Selected place',
-    available: 'Available',
-    unavailable: 'Unavailable',
-    confirm: 'Confirm reservation',
-  },
-  AZ: {
-    explore: 'Kəşf et',
-    partners: 'Restoranlar üçün',
-    headline: 'Sənin masan. Sənin mənzərən.',
-    subhead: 'Bakıda restoranları kəşf et və harada oturmaq istədiyini dəqiq seç.',
-    promise: 'Gəlməzdən əvvəl harada oturacağını bil.',
-    where: 'Harada?',
-    when: 'Nə vaxt?',
-    guests: 'Qonaqlar?',
-    find: 'Masa tap',
-    curated: 'Bu axşam üçün seçim',
-    choose: 'Masanı dəqiq seç',
-    planHelp: 'Mövcud masalar tarix, saat və qonaq sayına görə dəyişir.',
-    see: 'Bu masaya bax',
-    reserve: 'Bu masanı rezerv et',
-    back: 'Plana qayıt',
-    selected: 'Seçilmiş yer',
-    available: 'Mövcuddur',
-    unavailable: 'Tutulub',
-    confirm: 'Rezervasiyanı təsdiqlə',
-  },
-} as const;
-
-const restaurants = [
-  { name: 'Səki', area: 'İçərişəhər', cuisine: 'Modern Azerbaijani', price: '₼₼₼', tags: ['Quiet', 'Sea view', 'Date night'] },
-  { name: 'Həyət', area: 'White City', cuisine: 'Seasonal grill', price: '₼₼', tags: ['Garden', 'Terrace', 'Groups'] },
-  { name: 'Xəzri', area: 'Bayil', cuisine: 'Coastal kitchen', price: '₼₼₼', tags: ['Sea view', 'Private room', 'Sunset'] },
+const partnerToolKeys = [
+  { key: 'moveTables', icon: Move }, { key: 'addTable', icon: Plus },
+  { key: 'resizeTables', icon: Grip }, { key: 'setCapacity', icon: Users },
+  { key: 'unavailable', icon: X }, { key: 'combine', icon: Layers3 },
+  { key: 'assignTags', icon: Tags }, { key: 'defineZones', icon: Sparkles },
+  { key: 'reservations', icon: CalendarDays },
 ];
 
 function OturLogo() {
-  return (
-    <a className="brand" href="#top" aria-label="OTUR home">
-      <span className="brand-word" aria-hidden="true">
-        <span className="logo-o"><i /><i /><i /><i /></span>
-        <span>TUR</span>
-      </span>
-    </a>
-  );
+  return <a className="brand" href="#top" aria-label="OTUR home"><span className="brand-word" aria-hidden="true"><span className="logo-o"><i /><i /><i /><i /></span><span>TUR</span></span></a>;
 }
 
-function TableGlyph({ table, small = false }: { table: RestaurantTable; small?: boolean }) {
-  return (
-    <span className={`table-glyph ${table.shape} ${small ? 'small' : ''}`} aria-hidden="true">
-      {Array.from({ length: Math.min(table.capacity, 6) }).map((_, index) => (
-        <i key={index} style={{ '--chair': index } as CSSProperties} />
-      ))}
-    </span>
-  );
+function SceneImage({ src, scene = 0, className = '', label }: { src: string; scene?: number; className?: string; label: string }) {
+  return <div className={`scene-image scene-${scene} ${className}`} style={{ backgroundImage: `url(${src})` }}><span className="sr-only">{label}</span></div>;
 }
 
 export default function Home() {
   const [language, setLanguage] = useState<Language>('EN');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [date, setDate] = useState('2026-09-04');
-  const [time, setTime] = useState('19:30');
+  const [time, setTime] = useState('20:00');
   const [guests, setGuests] = useState(2);
-  const [selectedTableId, setSelectedTableId] = useState('T14');
+  const [searchPerformed, setSearchPerformed] = useState(false);
+  const [query, setQuery] = useState('');
+  const [activeFilter, setActiveFilter] = useState('Tonight');
+  const [restaurantId, setRestaurantId] = useState<'seki' | 'hayat' | 'xazri'>('seki');
+  const [selectedTableId, setSelectedTableId] = useState('S03');
   const [experienceView, setExperienceView] = useState<ExperienceView>('plan');
+  const [transitioning, setTransitioning] = useState(false);
   const [planScale, setPlanScale] = useState(1);
   const [reservationOpen, setReservationOpen] = useState(false);
-  const [confirmed, setConfirmed] = useState(false);
-  const [actionMessage, setActionMessage] = useState('');
-  const [partnerMode, setPartnerMode] = useState('Move tables');
+  const [partnerOpen, setPartnerOpen] = useState(false);
+  const [partnerMode, setPartnerMode] = useState('moveTables');
 
   const t = copy[language];
-  const availability = useMemo(
-    () => tables.map((table) => ({
-      ...table,
-      available: isTableAvailableForSlot(table, { date, time, guests }),
-    })),
-    [date, time, guests],
-  );
-  const selectedTable = availability.find((table) => table.id === selectedTableId) ?? availability[5];
+  const labels = t as unknown as Record<string, string>;
+  const restaurant = restaurants.find((item) => item.id === restaurantId) ?? restaurants[0];
+  const slot = useMemo(() => ({ restaurantId, date, time, guests }), [restaurantId, date, time, guests]);
+  const availability = useMemo(() => restaurant.tables.map((table) => ({
+    ...table, available: isTableAvailableForSlot(table, slot),
+  })), [restaurant, slot]);
+  const selectedTable = availability.find((table) => table.id === selectedTableId && table.available) ?? availability.find((table) => table.available) ?? availability[0];
   const availableCount = availability.filter((table) => table.available).length;
 
-  function updateSlot(next: { date?: string; time?: string; guests?: number }) {
-    if (next.date) setDate(next.date);
-    if (next.time) setTime(next.time);
-    if (next.guests) setGuests(next.guests);
-    setExperienceView('plan');
+  const localizedSearchRecords = useMemo(() => restaurants.map((item) => ({
+    ...item,
+    area: localize(item.area, language), cuisine: localize(item.cuisine, language),
+    description: localize(item.description, language), tags: item.tags.map((tag) => localizeTag(tag, language)),
+  })), [language]);
+  const activeFilterValue = filterTagMap[activeFilter];
+  const activeFilterLabel = activeFilterValue ? localizeTag(activeFilterValue, language) : '';
+  const filteredIds = new Set<string>(filterRestaurants(localizedSearchRecords, query, activeFilterLabel).map((item: { id: string }) => item.id));
+  const visibleRestaurants = restaurants.filter((item) => filteredIds.has(item.id));
+
+  useEffect(() => { document.documentElement.lang = language.toLowerCase(); }, [language]);
+  function availableTimesFor(targetId: string) {
+    const target = restaurants.find((item) => item.id === targetId) ?? restaurants[0];
+    return times.filter((candidate) => target.tables.some((table) => isTableAvailableForSlot(table, {
+      restaurantId: target.id, date, time: candidate, guests,
+    }))).slice(1, 4);
   }
 
   function findTables() {
-    document.getElementById('restaurant')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    setSearchPerformed(true);
+    window.setTimeout(() => document.getElementById('discover')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 40);
   }
 
-  function submitReservation(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setConfirmed(true);
+  function selectRestaurant(nextId: 'seki' | 'hayat' | 'xazri') {
+    const next = restaurants.find((item) => item.id === nextId) ?? restaurants[0];
+    const nextSlot = { restaurantId: next.id, date, time, guests };
+    setRestaurantId(nextId);
+    setSelectedTableId(getFirstAvailableTableId(next.tables, nextSlot) ?? next.tables[0].id);
+    setExperienceView('plan');
+    setPlanScale(1);
+    window.setTimeout(() => document.getElementById('restaurant')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 40);
   }
 
-  function openReservation() {
-    setActionMessage('');
-    setConfirmed(false);
-    setReservationOpen(true);
+  function seeSelectedTable() {
+    setTransitioning(true);
+    window.setTimeout(() => { setExperienceView('preview'); setTransitioning(false); }, 460);
+  }
+
+  function filterLabel(filter: string) {
+    if (filter === 'Tonight') return t.tonight;
+    const tag = filterTagMap[filter];
+    return tag ? localizeTag(tag, language) : filter;
   }
 
   return (
     <main id="top" className="site-shell">
       <header className="site-header">
         <OturLogo />
-        <nav className="desktop-nav" aria-label="Main navigation">
-          <a href="#discover">{t.explore}</a>
-          <a href="#partners">{t.partners}</a>
-        </nav>
+        <nav className="desktop-nav" aria-label={t.explore}><a href="#discover">{t.explore}</a><a href="#partners">{t.partners}</a></nav>
         <div className="header-actions">
-          <button className="language-switch" type="button" onClick={() => setLanguage(language === 'EN' ? 'AZ' : 'EN')} aria-label="Switch language">
-            <span className={language === 'AZ' ? 'active' : ''}>AZ</span>
-            <i />
-            <span className={language === 'EN' ? 'active' : ''}>EN</span>
-          </button>
-          <button className="mobile-menu-button" type="button" onClick={() => setMobileMenuOpen(!mobileMenuOpen)} aria-expanded={mobileMenuOpen} aria-label="Open navigation">
-            {mobileMenuOpen ? <X /> : <Menu />}
-          </button>
+          <div className="language-switch" aria-label="AZ · EN · RU">{(['AZ', 'EN', 'RU'] as Language[]).map((item) => <button key={item} type="button" className={language === item ? 'active' : ''} onClick={() => setLanguage(item)}>{item}</button>)}</div>
+          <button className="mobile-menu-button" type="button" onClick={() => setMobileMenuOpen((open) => !open)} aria-expanded={mobileMenuOpen} aria-label={t.explore}>{mobileMenuOpen ? <X /> : <Menu />}</button>
         </div>
-        {mobileMenuOpen && (
-          <nav className="mobile-nav" aria-label="Mobile navigation">
-            <a href="#discover" onClick={() => setMobileMenuOpen(false)}>{t.explore}</a>
-            <a href="#restaurant" onClick={() => setMobileMenuOpen(false)}>{t.choose}</a>
-            <a href="#partners" onClick={() => setMobileMenuOpen(false)}>{t.partners}</a>
-          </nav>
-        )}
+        {mobileMenuOpen && <nav className="mobile-nav" aria-label={t.explore}><a href="#discover" onClick={() => setMobileMenuOpen(false)}>{t.explore}</a><a href="#restaurant" onClick={() => setMobileMenuOpen(false)}>{t.choose}</a><a href="#partners" onClick={() => setMobileMenuOpen(false)}>{t.partners}</a></nav>}
       </header>
 
       <section className="hero" aria-labelledby="hero-title">
-        <div className="hero-copy">
-          <span className="overline">Bakı · masa seçiminin yeni yolu</span>
-          <h1 id="hero-title">{t.headline}</h1>
-          <p>{t.subhead}</p>
-        </div>
-        <p className="brand-promise"><CircleDot /> {t.promise}</p>
+        <div className="hero-copy"><span className="overline">{t.overline}</span><h1 id="hero-title">{t.headline}</h1><p>{t.subhead}</p><p className="brand-promise"><CircleDot />{t.promise}</p></div>
+        <div className="hero-model" aria-label={t.promise}><Image src="/og.png" alt={t.promise} fill priority sizes="(max-width: 760px) 100vw, 55vw" /><div className="hero-model-wash" /><div className="hero-sequence"><span className="active">01 · {t.heroStep1}</span><span>02 · {t.heroStep2}</span><span>03 · {t.heroStep3}</span></div><div className="hero-table-marker"><i /><strong>08</strong><small>{t.selected}</small></div></div>
       </section>
 
-      <section className="search-rail" aria-label="Search for a restaurant table">
-        <label>
-          <span><MapPin /> {t.where}</span>
-          <strong>Baku, Azerbaijan</strong>
-        </label>
-        <label>
-          <span><CalendarDays /> {t.when}</span>
-          <Input type="date" value={date} min="2026-09-02" onChange={(event) => updateSlot({ date: event.target.value })} aria-label="Reservation date" />
-        </label>
-        <label>
-          <span><Clock3 /> Time</span>
-          <select value={time} onChange={(event) => updateSlot({ time: event.target.value })} aria-label="Reservation time">
-            {times.map((slot) => <option key={slot}>{slot}</option>)}
-          </select>
-          <ChevronDown aria-hidden="true" />
-        </label>
-        <div className="guest-control">
-          <span><Users /> {t.guests}</span>
-          <div>
-            <button type="button" onClick={() => updateSlot({ guests: clampGuestCount(guests, -1) })} aria-label="Remove a guest"><Minus /></button>
-            <strong>{guests}</strong>
-            <button type="button" onClick={() => updateSlot({ guests: clampGuestCount(guests, 1) })} aria-label="Add a guest"><Plus /></button>
-          </div>
-        </div>
-        <Button className="primary-action" size="lg" onClick={findTables}>{t.find} <ArrowRight /></Button>
+      <section className="search-rail" aria-label={t.find}>
+        <label><span><MapPin />{t.where}</span><strong>Baku, Azerbaijan</strong></label>
+        <label><span><CalendarDays />{t.when}</span><Input type="date" value={date} min="2026-09-02" onChange={(event) => setDate(event.target.value)} aria-label={t.when} /></label>
+        <label><span><Clock3 />{t.time}</span><select value={time} onChange={(event) => setTime(event.target.value)} aria-label={t.time}>{times.map((item) => <option key={item}>{item}</option>)}</select><ChevronDown aria-hidden="true" /></label>
+        <div className="guest-control"><span><Users />{t.guests}</span><div><button type="button" onClick={() => setGuests(clampGuestCount(guests, -1))} aria-label={`${t.guests} −`}><Minus /></button><strong>{guests}</strong><button type="button" onClick={() => setGuests(clampGuestCount(guests, 1))} aria-label={`${t.guests} +`}><Plus /></button></div></div>
+        <Button className="primary-action" size="lg" onClick={findTables}>{t.find}<ArrowRight /></Button>
       </section>
 
-      <section id="discover" className="discovery" aria-labelledby="discover-title">
-        <div className="section-heading">
-          <div>
-            <span className="overline">03 places · handpicked</span>
-            <h2 id="discover-title">{t.curated}</h2>
-          </div>
-          <button type="button" onClick={findTables}>View map <Compass /></button>
-        </div>
-        <div className="restaurant-list">
-          {restaurants.map((restaurant, index) => (
-            <button key={restaurant.name} type="button" className={`restaurant-row row-${index + 1}`} onClick={findTables}>
-              <span className="restaurant-index">0{index + 1}</span>
-              <span className="restaurant-image-wrap">
-                {index === 0 ? <img src="/og.png" alt="Warm table setting at Səki" /> : <span className="material-swatch" />}
-              </span>
-              <span className="restaurant-main">
-                <strong>{restaurant.name}</strong>
-                <small>{restaurant.area} · {restaurant.cuisine} · {restaurant.price}</small>
-              </span>
-              <span className="restaurant-tags">
-                {restaurant.tags.map((tag) => <Badge key={tag} variant="outline">{tag}</Badge>)}
-              </span>
-              <span className="restaurant-rating"><Star /> 4.{8 - index}</span>
-              <ArrowRight className="row-arrow" />
-            </button>
-          ))}
-        </div>
+      <section id="discover" className={`discovery ${searchPerformed ? 'search-active' : ''}`} aria-labelledby="discover-title">
+        <div className="section-heading"><div><span className="overline">03 · BAKU</span><h2 id="discover-title">{t.discoveryTitle}</h2><p>{t.discoveryIntro}</p></div><span className="result-context"><CalendarDays />{date} · {time} · {guests}</span></div>
+        <div className="restaurant-search"><div className="search-input"><Search /><Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={t.searchPlaceholder} /></div><div className="quick-filters">{quickFilters.map((filter) => <button key={filter} type="button" className={activeFilter === filter ? 'active' : ''} onClick={() => setActiveFilter(filter)}>{filterLabel(filter)}</button>)}</div></div>
+        {visibleRestaurants.length ? <div className="restaurant-grid">{visibleRestaurants.map((item, index) => (
+          <article className="restaurant-card" key={item.id}>
+            <button type="button" className="restaurant-photo" onClick={() => selectRestaurant(item.id)}><SceneImage src={item.image} scene={0} label={`${item.name} · ${localize(item.atmosphere, language)}`} /><span className="card-index">0{index + 1}</span><span className="card-rating"><Star />{item.rating}</span></button>
+            <div className="restaurant-card-body"><div><span className="card-area"><MapPin />{localize(item.area, language)}</span><h3>{item.name}</h3><p>{localize(item.description, language)}</p></div><div className="card-meta"><span>{localize(item.cuisine, language)}</span><span>{item.price}</span></div><div className="card-tags">{item.tags.slice(0, 3).map((tag) => <Badge key={tag} variant="outline">{localizeTag(tag, language)}</Badge>)}</div><div className="availability-preview"><small>{t.availableAt}</small><div>{availableTimesFor(item.id).map((candidate) => <button key={candidate} type="button" onClick={() => { setTime(candidate); selectRestaurant(item.id); }}>{candidate}</button>)}</div></div><Button type="button" variant="outline" className="view-restaurant" onClick={() => selectRestaurant(item.id)}>{t.viewRestaurant}<ArrowRight /></Button></div>
+          </article>
+        ))}</div> : <div className="empty-results"><Compass /><p>{t.noResults}</p><Button type="button" variant="outline" onClick={() => { setQuery(''); setActiveFilter('Tonight'); }}>{t.clearSearch}</Button></div>}
       </section>
 
       <section id="restaurant" className="restaurant-experience" aria-labelledby="restaurant-title">
-        <header className="restaurant-header">
-          <div>
-            <span className="overline">Prototype restaurant · İçərişəhər</span>
-            <h2 id="restaurant-title">Səki</h2>
-            <p>Old-city stone, walnut, and a quietly contemporary Azerbaijani kitchen shaped around Caspian light.</p>
-          </div>
-          <dl className="restaurant-facts">
-            <div><dt>Cuisine</dt><dd>Modern Azerbaijani</dd></div>
-            <div><dt>Price</dt><dd>₼₼₼</dd></div>
-            <div><dt>Hours</dt><dd>18:00 — 00:00</dd></div>
-            <div><dt>Rating</dt><dd><Star /> 4.8</dd></div>
-          </dl>
-        </header>
-
-        <div className={`experience-stage ${experienceView === 'preview' ? 'show-preview' : ''}`}>
-          <section className="plan-side" aria-label="Interactive restaurant floor plan">
-            <div className="plan-titlebar">
-              <div>
-                <span>Dining room · evening</span>
-                <h3>{t.choose}</h3>
-              </div>
-              <div className="availability-key">
-                <span><i className="key-available" /> {t.available}</span>
-                <span><i className="key-unavailable" /> {t.unavailable}</span>
-                <strong>{availableCount} tables</strong>
-              </div>
-            </div>
-
-            <div className="plan-viewport">
-              <div className="zoom-controls" aria-label="Floor plan zoom controls">
-                <button type="button" onClick={() => setPlanScale(Math.max(.9, planScale - .1))} aria-label="Zoom out"><Minus /></button>
-                <span>{Math.round(planScale * 100)}%</span>
-                <button type="button" onClick={() => setPlanScale(Math.min(1.2, planScale + .1))} aria-label="Zoom in"><Plus /></button>
-              </div>
-              <div className="floorplan-canvas" style={{ transform: `scale(${planScale})` }}>
-                <div className="wall wall-left" /><div className="wall wall-bottom" /><div className="window-line"><span>WINDOW · CASPIAN LIGHT</span></div>
-                <div className="terrace-zone"><span>TERRACE</span></div>
-                <div className="bar-zone"><span>BAR</span><i /><i /><i /></div>
-                <div className="quiet-wall"><span>QUIET</span></div>
-                <div className="entrance"><DoorOpen /><span>ENTRANCE</span></div>
-                <div className="plant plant-one">✦</div><div className="plant plant-two">✦</div><div className="plant plant-three">✦</div>
-                {availability.map((table) => (
-                  <button
-                    key={table.id}
-                    type="button"
-                    className={`floor-table ${table.available ? 'available' : 'unavailable'} ${selectedTableId === table.id ? 'selected' : ''}`}
-                    style={{ left: `${table.left}%`, top: `${table.top}%` }}
-                    disabled={!table.available}
-                    onClick={() => {
-                      setSelectedTableId(table.id);
-                      setExperienceView('plan');
-                    }}
-                    aria-label={`${table.id.replace('T', 'Table ')}, ${table.capacity} seats, ${table.zone}, ${table.available ? 'available' : 'unavailable'}`}
-                  >
-                    <TableGlyph table={table} />
-                    <span>{table.id.replace('T', '')}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-            <p className="plan-help"><LocateFixed /> {t.planHelp}</p>
-          </section>
-
-          <aside className="table-context" aria-live="polite">
-            <span className="context-kicker">{t.selected}</span>
-            <div className="context-title">
-              <h3>{selectedTable.id.replace('T', 'Table ')}</h3>
-              <Badge className={selectedTable.available ? 'status-available' : 'status-unavailable'}>{selectedTable.available ? t.available : t.unavailable}</Badge>
-            </div>
-            <div className="context-glyph"><TableGlyph table={selectedTable} /><span>{selectedTable.capacity} seats</span></div>
-            <ul>
-              <li><Eye /> {selectedTable.zone}</li>
-              <li><CircleDot /> {selectedTable.detail}</li>
-              <li><Clock3 /> {time}</li>
-              <li><Users /> {guests} guests</li>
-            </ul>
-            <Button className="see-table-button" disabled={!selectedTable.available} onClick={() => setExperienceView('preview')}>
-              {t.see} <ArrowRight />
-            </Button>
-            <p>No card required · Free cancellation for 2 hours</p>
-          </aside>
-
-          <section className="spatial-preview" aria-label="View from the selected table">
-            <img src="/og.png" alt={`Atmospheric view from ${selectedTable.id.replace('T', 'Table ')} at Səki`} />
-            <div className="preview-wash" />
-            <button className="preview-back" type="button" onClick={() => setExperienceView('plan')}><ArrowLeft /> {t.back}</button>
-            <div className="preview-place-label">
-              <span>{selectedTable.id.replace('T', 'Table ')}</span>
-              <strong>{selectedTable.zone} · {selectedTable.detail}</strong>
-            </div>
-            <Button className="reserve-on-table" onClick={openReservation}>
-              <small>Səki · {time}</small>
-              <span>{t.reserve}</span>
-            </Button>
-            <div className="preview-orientation"><Compass /><span>Window</span></div>
-          </section>
+        <header className="restaurant-header"><div><button type="button" className="change-restaurant" onClick={() => document.getElementById('discover')?.scrollIntoView({ behavior: 'smooth' })}><ArrowLeft />{t.changeRestaurant}</button><span className="overline">{localize(restaurant.atmosphere, language)}</span><h2 id="restaurant-title">{restaurant.name}</h2><p>{localize(restaurant.description, language)}</p></div><dl className="restaurant-facts"><div><dt>{t.cuisine}</dt><dd>{localize(restaurant.cuisine, language)}</dd></div><div><dt>{t.price}</dt><dd>{restaurant.price}</dd></div><div><dt>{t.hours}</dt><dd>{restaurant.hours}</dd></div><div><dt>{t.rating}</dt><dd><Star />{restaurant.rating}</dd></div></dl></header>
+        <div className={`experience-stage ${experienceView === 'preview' ? 'show-preview' : ''} ${transitioning ? 'zooming' : ''}`}>
+          <section className="plan-side" aria-label={t.choose}><div className="plan-titlebar"><div><span>{restaurant.name} · {t.floorEvening}</span><h3>{t.choose}</h3></div><div className="availability-key"><span><i className="key-available" />{t.available}</span><span><i className="key-reserved" />{t.reserved}</span><span><i className="key-selected" />{t.selected}</span><strong>{availableCount} {t.tables}</strong></div></div><FloorPlan restaurant={restaurant} tables={availability} selectedId={selectedTable.id} language={language} labels={labels} scale={planScale} onScale={setPlanScale} onSelect={(id) => { setSelectedTableId(id); setExperienceView('plan'); }} /><p className="plan-help"><CircleDot />{t.planHelp}</p></section>
+          <aside className="table-context"><span className="context-kicker">{t.whyThis}</span><div className="context-title"><h3>{selectedTable.id}</h3><Badge className="status-available"><Check />{t.available}</Badge></div><div className="context-glyph"><TableGlyph table={selectedTable} /><span>{selectedTable.capacity} {t.seats} · {time}</span></div><p className="table-detail">{localize(selectedTable.detail, language)}</p><div className="context-tags">{selectedTable.tags.slice(0, 3).map((tag) => <span key={tag}>{localizeTag(tag, language)}</span>)}</div><Button className="see-table-button" onClick={seeSelectedTable}>{t.see}<Eye /></Button></aside>
+          <section className="spatial-preview" aria-label={t.previewHint}><SceneImage src={restaurant.image} scene={selectedTable.scene} className="preview-scene" label={`${restaurant.name} ${selectedTable.id}`} /><div className="preview-wash" /><button className="preview-back" type="button" onClick={() => setExperienceView('plan')}><ArrowLeft />{t.back}</button><div className="preview-place-label"><span>{restaurant.name} · {selectedTable.id}</span><strong>{selectedTable.tags.map((tag) => localizeTag(tag, language)).join(' · ')}</strong></div><Button className="reserve-on-table" onClick={() => setReservationOpen(true)}><small>{selectedTable.id} · {time} · {guests} {t.seats}</small><span>{t.reserve}</span></Button><span className="preview-orientation"><Eye />{t.previewHint}</span></section>
         </div>
+        <div className="restaurant-gallery"><div className="gallery-copy"><span className="overline">{restaurant.name} · 04</span><h3>{t.gallery}</h3><p>{t.galleryIntro}</p></div>{[0, 1, 2, 3].map((scene) => <SceneImage key={scene} src={restaurant.image} scene={scene} label={`${restaurant.name} · ${t.gallery}`} />)}</div>
       </section>
 
-      <section id="partners" className="partner-section" aria-labelledby="partner-title">
-        <div className="partner-copy">
-          <span className="overline">OTUR for restaurants</span>
-          <h2 id="partner-title">Your dining room,<br /><em>digitally.</em></h2>
-          <p>Let guests understand your space before they arrive—and give your team one calm view of every table.</p>
-          <Button>Bring OTUR to your restaurant <ArrowRight /></Button>
-        </div>
-        <div className="partner-product" aria-label="Restaurant floor plan management preview">
-          <div className="partner-toolbar">
-            <span>Səki · Floor plan</span>
-            <Badge variant="outline">Tonight · 28 covers</Badge>
-          </div>
-          <div className="partner-workspace">
-            <aside>
-              {partnerTools.map(({ label, icon: Icon }) => (
-                <button key={label} className={partnerMode === label ? 'active' : ''} type="button" onClick={() => setPartnerMode(label)}>
-                  <Icon /> <span>{label}</span>
-                </button>
-              ))}
-            </aside>
-            <div className={`partner-plan mode-${partnerMode.toLowerCase().replace(' ', '-')}`}>
-              <div className="partner-zone zone-a">INDOOR</div><div className="partner-zone zone-b">TERRACE</div>
-              {[18, 38, 61, 78].map((left, index) => <button key={left} type="button" style={{ left: `${left}%`, top: `${index % 2 ? 58 : 31}%` }} aria-label={`Managed table ${index + 1}`}><span>{index + 1}</span></button>)}
-              <output>{partnerMode}: ready</output>
-            </div>
-          </div>
-        </div>
+      <section id="partners" className="partner-section">
+        <div className="partner-copy"><span className="overline">{t.partnerOverline}</span><h2>{t.partnerHeadlineA}<br /><em>{t.partnerHeadlineB}</em></h2><p>{t.partnerCopy}</p><Button onClick={() => setPartnerOpen(true)}>{t.bringOtur}<ArrowRight /></Button><div className="no-plan-card"><FileUp /><div><strong>{t.noPlan}</strong><p>{t.noPlanCopy}</p><button type="button" onClick={() => setPartnerOpen(true)}>{t.sendPlan}</button></div></div></div>
+        <div className="partner-product"><div className="partner-toolbar"><strong>{t.partnerTools}</strong><Badge variant="outline">OTUR · LIVE PLAN</Badge></div><div className="partner-workspace"><aside>{partnerToolKeys.map(({ key, icon: Icon }) => <button key={key} type="button" className={partnerMode === key ? 'active' : ''} onClick={() => setPartnerMode(key)}><Icon /><span>{labels[key]}</span></button>)}</aside><div className={`partner-plan mode-${partnerMode}`}><span className="partner-zone zone-a">{t.indoorZone}</span><span className="partner-zone zone-b">{t.terraceZone}</span>{[[22, 26], [49, 23], [75, 29], [30, 63], [61, 62], [84, 69]].map(([left, top], index) => <button key={index} type="button" style={{ left: `${left}%`, top: `${top}%` }}><span>{index + 1}</span></button>)}<output>{labels[partnerMode]}</output></div></div></div>
       </section>
 
-      <footer className="site-footer">
-        <OturLogo />
-        <p>Most apps help you choose a restaurant.<br />OTUR helps you choose your place inside it.</p>
-        <span>Made thoughtfully in Bakı · 2026</span>
-      </footer>
-
-      <Dialog open={reservationOpen} onOpenChange={setReservationOpen}>
-        <DialogContent className="reservation-sheet">
-          {confirmed ? (
-            <div className="confirmation">
-              <span className="confirmation-mark"><Check /></span>
-              <DialogHeader>
-                <DialogTitle>{selectedTable.id.replace('T', 'Table ')} is yours.</DialogTitle>
-                <DialogDescription>Friday · {time} · {guests} guests</DialogDescription>
-              </DialogHeader>
-              <div className="confirmation-plan" aria-label="Reserved table location thumbnail">
-                <span className="mini-window">WINDOW</span>
-                {availability.slice(0, 6).map((table) => (
-                  <i key={table.id} className={table.id === selectedTable.id ? 'reserved' : ''} style={{ left: `${table.left}%`, top: `${table.top}%` }}>{table.id.replace('T', '')}</i>
-                ))}
-              </div>
-              <p>We’ll send confirmation to your phone.</p>
-              <div className="confirmation-actions">
-                <Button variant="outline" onClick={() => setActionMessage('Calendar event prepared')}><CalendarPlus /> Add to calendar</Button>
-                <Button variant="outline" onClick={() => setActionMessage('Directions opened')}><MapPin /> Directions</Button>
-                <Button variant="outline" onClick={() => setActionMessage('Share link copied')}><Share2 /> Share</Button>
-              </div>
-              <output aria-live="polite">{actionMessage}</output>
-              <Button className="done-button" onClick={() => setReservationOpen(false)}>Done</Button>
-            </div>
-          ) : (
-            <>
-              <DialogHeader>
-                <span className="sheet-kicker">No login · a few seconds</span>
-                <DialogTitle>Reserve {selectedTable.id.replace('T', 'Table ')}</DialogTitle>
-                <DialogDescription>Səki · {date} · {time} · {guests} guests · {selectedTable.zone}</DialogDescription>
-              </DialogHeader>
-              <div className="sheet-summary">
-                <TableGlyph table={selectedTable} small />
-                <span><small>Already selected</small><strong>{selectedTable.detail}</strong></span>
-                <Check />
-              </div>
-              <form className="reservation-form" onSubmit={submitReservation}>
-                <div><Label htmlFor="name">Name</Label><Input id="name" name="name" autoComplete="name" placeholder="Your full name" required /></div>
-                <div>
-                  <Label htmlFor="phone">Phone number</Label>
-                  <div className="phone-field"><span>+994</span><Input id="phone" name="phone" inputMode="tel" autoComplete="tel" placeholder="50 000 00 00" required /></div>
-                </div>
-                <div><Label htmlFor="email">Email <small>optional</small></Label><div className="icon-field"><Mail /><Input id="email" name="email" type="email" autoComplete="email" placeholder="you@example.com" /></div></div>
-                <div><Label htmlFor="request">Special request <small>optional</small></Label><Input id="request" name="request" placeholder="Allergies, accessibility, celebration…" /></div>
-                <Button className="confirm-button" size="lg" type="submit">{t.confirm} <ArrowRight /></Button>
-              </form>
-            </>
-          )}
-        </DialogContent>
-      </Dialog>
+      <footer className="site-footer"><OturLogo /><p>{t.promise}<br />Baku, Azerbaijan</p><span>{t.prototype}</span></footer>
+      <BookingDialog open={reservationOpen} onOpenChange={setReservationOpen} restaurant={restaurant} table={selectedTable} date={date} time={time} guests={guests} language={language} labels={labels} />
+      <PartnerDialog open={partnerOpen} onOpenChange={setPartnerOpen} labels={labels} />
     </main>
   );
 }
