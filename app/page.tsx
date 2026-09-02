@@ -1,19 +1,31 @@
 'use client';
 
 import { FormEvent, useMemo, useState } from 'react';
+import type { CSSProperties } from 'react';
 import {
   ArrowLeft,
+  ArrowRight,
   CalendarDays,
+  CalendarPlus,
   Check,
   ChevronDown,
+  CircleDot,
   Clock3,
+  Compass,
+  DoorOpen,
+  Eye,
+  Grip,
   LocateFixed,
+  Mail,
   MapPin,
+  Menu,
   Minus,
+  Move,
   Plus,
-  Sparkles,
+  Share2,
   Star,
   Users,
+  X,
 } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
@@ -27,344 +39,435 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { clampGuestCount, isTableSelectable } from '@/lib/booking';
+import { clampGuestCount, isTableAvailableForSlot } from '@/lib/booking';
 
-type Table = {
+type Language = 'EN' | 'AZ';
+type ExperienceView = 'plan' | 'preview';
+
+type RestaurantTable = {
   id: string;
-  label: string;
-  seats: number;
+  capacity: number;
   left: number;
   top: number;
-  shape: 'round' | 'long';
-  available: boolean;
-  note: string;
+  shape: 'round' | 'square' | 'long';
+  zone: 'Window' | 'Terrace' | 'Quiet' | 'Bar' | 'Private';
+  detail: string;
+  baseAvailable: boolean;
 };
 
-const tables: Table[] = [
-  { id: 'T1', label: 'Terrace 01', seats: 2, left: 15, top: 21, shape: 'round', available: true, note: 'Quiet corner · city view' },
-  { id: 'T2', label: 'Terrace 02', seats: 4, left: 39, top: 18, shape: 'round', available: false, note: 'Near the garden' },
-  { id: 'T3', label: 'Terrace 03', seats: 4, left: 67, top: 22, shape: 'round', available: true, note: 'Open sky · garden side' },
-  { id: 'T4', label: 'Terrace 04', seats: 2, left: 27, top: 55, shape: 'round', available: true, note: 'Best sunset view' },
-  { id: 'T5', label: 'Terrace 05', seats: 6, left: 57, top: 56, shape: 'long', available: true, note: 'For a larger gathering' },
-  { id: 'T6', label: 'Terrace 06', seats: 2, left: 83, top: 60, shape: 'round', available: false, note: 'Near the lounge' },
+const tables: RestaurantTable[] = [
+  { id: 'T02', capacity: 2, left: 15, top: 19, shape: 'round', zone: 'Window', detail: 'Caspian light · intimate', baseAvailable: true },
+  { id: 'T03', capacity: 4, left: 34, top: 19, shape: 'round', zone: 'Window', detail: 'Wide window · social', baseAvailable: true },
+  { id: 'T06', capacity: 4, left: 63, top: 19, shape: 'square', zone: 'Terrace', detail: 'Open air · sunset side', baseAvailable: true },
+  { id: 'T08', capacity: 2, left: 85, top: 23, shape: 'round', zone: 'Terrace', detail: 'Garden edge · soft light', baseAvailable: false },
+  { id: 'T11', capacity: 4, left: 19, top: 58, shape: 'square', zone: 'Quiet', detail: 'Screened corner · low traffic', baseAvailable: true },
+  { id: 'T14', capacity: 2, left: 42, top: 57, shape: 'round', zone: 'Window', detail: 'Window · quiet · best view', baseAvailable: true },
+  { id: 'T16', capacity: 6, left: 68, top: 57, shape: 'long', zone: 'Bar', detail: 'Near the bar · lively', baseAvailable: true },
+  { id: 'T17', capacity: 2, left: 87, top: 60, shape: 'round', zone: 'Private', detail: 'Stone screen · secluded', baseAvailable: true },
 ];
 
-const restaurantTabs = ['Terrace', 'Main hall'];
+const times = ['18:30', '19:00', '19:30', '20:00', '20:30', '21:00'];
 
-function MasaLogo() {
+const partnerTools = [
+  { label: 'Move tables', icon: Move },
+  { label: 'Add table', icon: Plus },
+  { label: 'Set capacity', icon: Users },
+  { label: 'Combine', icon: Grip },
+  { label: 'Unavailable', icon: X },
+  { label: 'Reservations', icon: CalendarDays },
+];
+
+const copy = {
+  EN: {
+    explore: 'Explore',
+    partners: 'For restaurants',
+    headline: 'Your table. Your view.',
+    subhead: 'Discover restaurants in Baku and choose exactly where you want to sit.',
+    promise: 'Know where you’ll sit before you arrive.',
+    where: 'Where?',
+    when: 'When?',
+    guests: 'Guests?',
+    find: 'Find a table',
+    curated: 'Curated for tonight',
+    choose: 'Choose your exact table',
+    planHelp: 'Available tables change with your date, time, and party size.',
+    see: 'See this table',
+    reserve: 'Reserve this table',
+    back: 'Back to floor plan',
+    selected: 'Selected place',
+    available: 'Available',
+    unavailable: 'Unavailable',
+    confirm: 'Confirm reservation',
+  },
+  AZ: {
+    explore: 'Kəşf et',
+    partners: 'Restoranlar üçün',
+    headline: 'Sənin masan. Sənin mənzərən.',
+    subhead: 'Bakıda restoranları kəşf et və harada oturmaq istədiyini dəqiq seç.',
+    promise: 'Gəlməzdən əvvəl harada oturacağını bil.',
+    where: 'Harada?',
+    when: 'Nə vaxt?',
+    guests: 'Qonaqlar?',
+    find: 'Masa tap',
+    curated: 'Bu axşam üçün seçim',
+    choose: 'Masanı dəqiq seç',
+    planHelp: 'Mövcud masalar tarix, saat və qonaq sayına görə dəyişir.',
+    see: 'Bu masaya bax',
+    reserve: 'Bu masanı rezerv et',
+    back: 'Plana qayıt',
+    selected: 'Seçilmiş yer',
+    available: 'Mövcuddur',
+    unavailable: 'Tutulub',
+    confirm: 'Rezervasiyanı təsdiqlə',
+  },
+} as const;
+
+const restaurants = [
+  { name: 'Səki', area: 'İçərişəhər', cuisine: 'Modern Azerbaijani', price: '₼₼₼', tags: ['Quiet', 'Sea view', 'Date night'] },
+  { name: 'Həyət', area: 'White City', cuisine: 'Seasonal grill', price: '₼₼', tags: ['Garden', 'Terrace', 'Groups'] },
+  { name: 'Xəzri', area: 'Bayil', cuisine: 'Coastal kitchen', price: '₼₼₼', tags: ['Sea view', 'Private room', 'Sunset'] },
+];
+
+function OturLogo() {
   return (
-    <a className="brand" href="#top" aria-label="Masa home">
-      <span className="brand-mark" aria-hidden="true">
-        <i />
-        <i />
-        <i />
-        <i />
+    <a className="brand" href="#top" aria-label="OTUR home">
+      <span className="brand-word" aria-hidden="true">
+        <span className="logo-o"><i /><i /><i /><i /></span>
+        <span>TUR</span>
       </span>
-      <span className="brand-name">masa</span>
-      <span className="brand-city">Bakı</span>
     </a>
   );
 }
 
-function SearchField({
-  icon,
-  label,
-  value,
-  children,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-  children?: React.ReactNode;
-}) {
+function TableGlyph({ table, small = false }: { table: RestaurantTable; small?: boolean }) {
   return (
-    <button className="search-field" type="button">
-      <span className="search-icon">{icon}</span>
-      <span>
-        <small>{label}</small>
-        <strong>{value}</strong>
-      </span>
-      {children ?? <ChevronDown className="field-chevron" />}
-    </button>
+    <span className={`table-glyph ${table.shape} ${small ? 'small' : ''}`} aria-hidden="true">
+      {Array.from({ length: Math.min(table.capacity, 6) }).map((_, index) => (
+        <i key={index} style={{ '--chair': index } as CSSProperties} />
+      ))}
+    </span>
   );
 }
 
 export default function Home() {
-  const [activeTableId, setActiveTableId] = useState('T4');
-  const [activeRoom, setActiveRoom] = useState('Terrace');
+  const [language, setLanguage] = useState<Language>('EN');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [date, setDate] = useState('2026-09-04');
+  const [time, setTime] = useState('19:30');
   const [guests, setGuests] = useState(2);
-  const [isReserveOpen, setIsReserveOpen] = useState(false);
-  const [isConfirmed, setIsConfirmed] = useState(false);
-  const [language, setLanguage] = useState<'AZ' | 'EN'>('EN');
+  const [selectedTableId, setSelectedTableId] = useState('T14');
+  const [experienceView, setExperienceView] = useState<ExperienceView>('plan');
+  const [planScale, setPlanScale] = useState(1);
+  const [reservationOpen, setReservationOpen] = useState(false);
+  const [confirmed, setConfirmed] = useState(false);
+  const [actionMessage, setActionMessage] = useState('');
+  const [partnerMode, setPartnerMode] = useState('Move tables');
 
-  const activeTable = useMemo(
-    () => tables.find((table) => table.id === activeTableId) ?? tables[3],
-    [activeTableId],
+  const t = copy[language];
+  const availability = useMemo(
+    () => tables.map((table) => ({
+      ...table,
+      available: isTableAvailableForSlot(table, { date, time, guests }),
+    })),
+    [date, time, guests],
   );
+  const selectedTable = availability.find((table) => table.id === selectedTableId) ?? availability[5];
+  const availableCount = availability.filter((table) => table.available).length;
 
-  function openReservation() {
-    setIsConfirmed(false);
-    setIsReserveOpen(true);
+  function updateSlot(next: { date?: string; time?: string; guests?: number }) {
+    if (next.date) setDate(next.date);
+    if (next.time) setTime(next.time);
+    if (next.guests) setGuests(next.guests);
+    setExperienceView('plan');
+  }
+
+  function findTables() {
+    document.getElementById('restaurant')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   function submitReservation(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setIsConfirmed(true);
+    setConfirmed(true);
+  }
+
+  function openReservation() {
+    setActionMessage('');
+    setConfirmed(false);
+    setReservationOpen(true);
   }
 
   return (
     <main id="top" className="site-shell">
       <header className="site-header">
-        <MasaLogo />
-        <nav className="main-nav" aria-label="Main navigation">
-          <a className="active" href="#restaurants">{language === 'EN' ? 'Restaurants' : 'Restoranlar'}</a>
-          <a href="#how-it-works">{language === 'EN' ? 'How it works' : 'Necə işləyir'}</a>
-          <a href="#partners">{language === 'EN' ? 'For restaurants' : 'Restoranlar üçün'}</a>
+        <OturLogo />
+        <nav className="desktop-nav" aria-label="Main navigation">
+          <a href="#discover">{t.explore}</a>
+          <a href="#partners">{t.partners}</a>
         </nav>
         <div className="header-actions">
-          <button
-            type="button"
-            className="language-toggle"
-            onClick={() => setLanguage(language === 'EN' ? 'AZ' : 'EN')}
-          >
-            {language}
+          <button className="language-switch" type="button" onClick={() => setLanguage(language === 'EN' ? 'AZ' : 'EN')} aria-label="Switch language">
+            <span className={language === 'AZ' ? 'active' : ''}>AZ</span>
+            <i />
+            <span className={language === 'EN' ? 'active' : ''}>EN</span>
           </button>
-          <Button className="partner-button" variant="outline">
-            {language === 'EN' ? 'List your restaurant' : 'Restoranı əlavə et'}
-          </Button>
+          <button className="mobile-menu-button" type="button" onClick={() => setMobileMenuOpen(!mobileMenuOpen)} aria-expanded={mobileMenuOpen} aria-label="Open navigation">
+            {mobileMenuOpen ? <X /> : <Menu />}
+          </button>
         </div>
+        {mobileMenuOpen && (
+          <nav className="mobile-nav" aria-label="Mobile navigation">
+            <a href="#discover" onClick={() => setMobileMenuOpen(false)}>{t.explore}</a>
+            <a href="#restaurant" onClick={() => setMobileMenuOpen(false)}>{t.choose}</a>
+            <a href="#partners" onClick={() => setMobileMenuOpen(false)}>{t.partners}</a>
+          </nav>
+        )}
       </header>
 
-      <section className="intro" aria-labelledby="page-title">
-        <div>
-          <Badge className="eyebrow" variant="outline">
-            <Sparkles /> {language === 'EN' ? 'A calmer way to book in Baku' : 'Bakıda rezervasiyanın sakit yolu'}
-          </Badge>
-          {language === 'EN' ? (
-            <h1 id="page-title">Not just a restaurant.<br />Choose your <em>moment.</em></h1>
-          ) : (
-            <h1 id="page-title">Sadəcə restoran deyil.<br /><em>Anını</em> seç.</h1>
-          )}
+      <section className="hero" aria-labelledby="hero-title">
+        <div className="hero-copy">
+          <span className="overline">Bakı · masa seçiminin yeni yolu</span>
+          <h1 id="hero-title">{t.headline}</h1>
+          <p>{t.subhead}</p>
         </div>
-        <p>
-          {language === 'EN'
-            ? 'See the room, choose the exact table you want, and reserve it in a few quiet taps.'
-            : 'Məkanı gör, istədiyin masanı seç və bir neçə toxunuşla rezerv et.'}
-        </p>
+        <p className="brand-promise"><CircleDot /> {t.promise}</p>
       </section>
 
-      <section className="search-bar" aria-label="Find a table">
-        <SearchField icon={<MapPin />} label="Location" value="Baku, Azerbaijan" />
-        <SearchField icon={<CalendarDays />} label="Date" value="Fri, 4 September" />
-        <SearchField icon={<Clock3 />} label="Time" value="19:30" />
-        <SearchField icon={<Users />} label="Guests" value={`${guests} guests`}>
-          <span className="guest-stepper">
-            <span
-              role="button"
-              tabIndex={0}
-              aria-label="Remove guest"
-              onClick={(event) => {
-                event.stopPropagation();
-                setGuests(clampGuestCount(guests, -1));
-              }}
-            >
-              <Minus />
-            </span>
-            <span
-              role="button"
-              tabIndex={0}
-              aria-label="Add guest"
-              onClick={(event) => {
-                event.stopPropagation();
-                setGuests(clampGuestCount(guests, 1));
-              }}
-            >
-              <Plus />
-            </span>
-          </span>
-        </SearchField>
-        <Button className="find-button" size="lg">{language === 'EN' ? 'Find a table' : 'Masa tap'}</Button>
+      <section className="search-rail" aria-label="Search for a restaurant table">
+        <label>
+          <span><MapPin /> {t.where}</span>
+          <strong>Baku, Azerbaijan</strong>
+        </label>
+        <label>
+          <span><CalendarDays /> {t.when}</span>
+          <Input type="date" value={date} min="2026-09-02" onChange={(event) => updateSlot({ date: event.target.value })} aria-label="Reservation date" />
+        </label>
+        <label>
+          <span><Clock3 /> Time</span>
+          <select value={time} onChange={(event) => updateSlot({ time: event.target.value })} aria-label="Reservation time">
+            {times.map((slot) => <option key={slot}>{slot}</option>)}
+          </select>
+          <ChevronDown aria-hidden="true" />
+        </label>
+        <div className="guest-control">
+          <span><Users /> {t.guests}</span>
+          <div>
+            <button type="button" onClick={() => updateSlot({ guests: clampGuestCount(guests, -1) })} aria-label="Remove a guest"><Minus /></button>
+            <strong>{guests}</strong>
+            <button type="button" onClick={() => updateSlot({ guests: clampGuestCount(guests, 1) })} aria-label="Add a guest"><Plus /></button>
+          </div>
+        </div>
+        <Button className="primary-action" size="lg" onClick={findTables}>{t.find} <ArrowRight /></Button>
       </section>
 
-      <section id="restaurants" className="booking-card" aria-label="Choose your table at Sahil">
-        <aside className="venue-panel">
-          <button className="back-link" type="button"><ArrowLeft /> All restaurants</button>
-          <div className="venue-kicker">Featured tonight</div>
-          <h2>Sahil</h2>
-          <div className="venue-meta">
-            <span><MapPin /> Neftçilər Avenue · 1.2 km</span>
-            <span><Star className="star-icon" /> <strong>4.8</strong> (312)</span>
+      <section id="discover" className="discovery" aria-labelledby="discover-title">
+        <div className="section-heading">
+          <div>
+            <span className="overline">03 places · handpicked</span>
+            <h2 id="discover-title">{t.curated}</h2>
           </div>
-          <p className="venue-description">Modern Azerbaijani cooking with Mediterranean lightness, tucked beside the boulevard.</p>
+          <button type="button" onClick={findTables}>View map <Compass /></button>
+        </div>
+        <div className="restaurant-list">
+          {restaurants.map((restaurant, index) => (
+            <button key={restaurant.name} type="button" className={`restaurant-row row-${index + 1}`} onClick={findTables}>
+              <span className="restaurant-index">0{index + 1}</span>
+              <span className="restaurant-image-wrap">
+                {index === 0 ? <img src="/og.png" alt="Warm table setting at Səki" /> : <span className="material-swatch" />}
+              </span>
+              <span className="restaurant-main">
+                <strong>{restaurant.name}</strong>
+                <small>{restaurant.area} · {restaurant.cuisine} · {restaurant.price}</small>
+              </span>
+              <span className="restaurant-tags">
+                {restaurant.tags.map((tag) => <Badge key={tag} variant="outline">{tag}</Badge>)}
+              </span>
+              <span className="restaurant-rating"><Star /> 4.{8 - index}</span>
+              <ArrowRight className="row-arrow" />
+            </button>
+          ))}
+        </div>
+      </section>
 
-          <div className="room-tabs" role="tablist" aria-label="Restaurant area">
-            {restaurantTabs.map((tab) => (
-              <button
-                key={tab}
-                type="button"
-                role="tab"
-                aria-selected={activeRoom === tab}
-                className={activeRoom === tab ? 'active' : ''}
-                onClick={() => setActiveRoom(tab)}
-              >
-                {tab}
-              </button>
-            ))}
+      <section id="restaurant" className="restaurant-experience" aria-labelledby="restaurant-title">
+        <header className="restaurant-header">
+          <div>
+            <span className="overline">Prototype restaurant · İçərişəhər</span>
+            <h2 id="restaurant-title">Səki</h2>
+            <p>Old-city stone, walnut, and a quietly contemporary Azerbaijani kitchen shaped around Caspian light.</p>
           </div>
+          <dl className="restaurant-facts">
+            <div><dt>Cuisine</dt><dd>Modern Azerbaijani</dd></div>
+            <div><dt>Price</dt><dd>₼₼₼</dd></div>
+            <div><dt>Hours</dt><dd>18:00 — 00:00</dd></div>
+            <div><dt>Rating</dt><dd><Star /> 4.8</dd></div>
+          </dl>
+        </header>
 
-          <div className="table-legend">
-            <span><i className="available-dot" /> Available</span>
-            <span><i className="taken-dot" /> Reserved</span>
-          </div>
-
-          <div className="floor-plan" aria-label={`${activeRoom} floor plan`}>
-            <div className="plan-label north">Boulevard view</div>
-            <div className="plan-label garden">Olive garden</div>
-            <div className="plan-service">service</div>
-            {activeRoom === 'Terrace' ? (
-              tables.map((table) => (
-                <button
-                  key={table.id}
-                  type="button"
-                  aria-label={`${table.label}, ${table.seats} seats${table.available ? '' : ', reserved'}`}
-                  disabled={!isTableSelectable(table)}
-                  className={`table-node ${table.shape} ${table.available ? 'available' : 'taken'} ${activeTableId === table.id ? 'selected' : ''}`}
-                  style={{ left: `${table.left}%`, top: `${table.top}%` }}
-                  onClick={() => setActiveTableId(table.id)}
-                >
-                  <span>{table.id.slice(1)}</span>
-                  <small>{table.seats}</small>
-                </button>
-              ))
-            ) : (
-              <div className="room-notice">
-                <span>Indoor plan</span>
-                <p>The main hall opens for bookings at 20:30.</p>
-              </div>
-            )}
-          </div>
-          <p className="plan-hint"><LocateFixed /> Tap an available table to preview its view.</p>
-        </aside>
-
-        <article className="preview-panel">
-          <div className="preview-toolbar">
-            <span>Table view</span>
-            <Badge className="live-badge">Live preview</Badge>
-          </div>
-
-          <div className="scene-placeholder">
-            <img
-              className="scene-photo"
-              src="/og.png"
-              alt="Golden-hour terrace view from the selected table at Sahil"
-            />
-            <Button className="table-reserve-pin" size="sm" onClick={openReservation}>
-              Reserve {activeTable.id}
-            </Button>
-            <div className="view-angle" aria-hidden="true">01 / 03</div>
-          </div>
-
-          <div className="selection-card">
-            <div className="selection-heading">
+        <div className={`experience-stage ${experienceView === 'preview' ? 'show-preview' : ''}`}>
+          <section className="plan-side" aria-label="Interactive restaurant floor plan">
+            <div className="plan-titlebar">
               <div>
-                <span className="selection-overline">Your selection</span>
-                <h3>{activeTable.label}</h3>
-                <p>{activeTable.note}</p>
+                <span>Dining room · evening</span>
+                <h3>{t.choose}</h3>
               </div>
-              <span className="seat-chip"><Users /> {activeTable.seats}</span>
+              <div className="availability-key">
+                <span><i className="key-available" /> {t.available}</span>
+                <span><i className="key-unavailable" /> {t.unavailable}</span>
+                <strong>{availableCount} tables</strong>
+              </div>
             </div>
-            <div className="booking-summary">
-              <span><small>Date</small><strong>Fri, 4 Sep</strong></span>
-              <span><small>Time</small><strong>19:30</strong></span>
-              <span><small>Guests</small><strong>{guests} people</strong></span>
+
+            <div className="plan-viewport">
+              <div className="zoom-controls" aria-label="Floor plan zoom controls">
+                <button type="button" onClick={() => setPlanScale(Math.max(.9, planScale - .1))} aria-label="Zoom out"><Minus /></button>
+                <span>{Math.round(planScale * 100)}%</span>
+                <button type="button" onClick={() => setPlanScale(Math.min(1.2, planScale + .1))} aria-label="Zoom in"><Plus /></button>
+              </div>
+              <div className="floorplan-canvas" style={{ transform: `scale(${planScale})` }}>
+                <div className="wall wall-left" /><div className="wall wall-bottom" /><div className="window-line"><span>WINDOW · CASPIAN LIGHT</span></div>
+                <div className="terrace-zone"><span>TERRACE</span></div>
+                <div className="bar-zone"><span>BAR</span><i /><i /><i /></div>
+                <div className="quiet-wall"><span>QUIET</span></div>
+                <div className="entrance"><DoorOpen /><span>ENTRANCE</span></div>
+                <div className="plant plant-one">✦</div><div className="plant plant-two">✦</div><div className="plant plant-three">✦</div>
+                {availability.map((table) => (
+                  <button
+                    key={table.id}
+                    type="button"
+                    className={`floor-table ${table.available ? 'available' : 'unavailable'} ${selectedTableId === table.id ? 'selected' : ''}`}
+                    style={{ left: `${table.left}%`, top: `${table.top}%` }}
+                    disabled={!table.available}
+                    onClick={() => {
+                      setSelectedTableId(table.id);
+                      setExperienceView('plan');
+                    }}
+                    aria-label={`${table.id.replace('T', 'Table ')}, ${table.capacity} seats, ${table.zone}, ${table.available ? 'available' : 'unavailable'}`}
+                  >
+                    <TableGlyph table={table} />
+                    <span>{table.id.replace('T', '')}</span>
+                  </button>
+                ))}
+              </div>
             </div>
-            <Button className="reserve-button" size="lg" onClick={openReservation}>
-              {language === 'EN' ? 'Reserve this table' : 'Bu masanı rezerv et'} <span>→</span>
+            <p className="plan-help"><LocateFixed /> {t.planHelp}</p>
+          </section>
+
+          <aside className="table-context" aria-live="polite">
+            <span className="context-kicker">{t.selected}</span>
+            <div className="context-title">
+              <h3>{selectedTable.id.replace('T', 'Table ')}</h3>
+              <Badge className={selectedTable.available ? 'status-available' : 'status-unavailable'}>{selectedTable.available ? t.available : t.unavailable}</Badge>
+            </div>
+            <div className="context-glyph"><TableGlyph table={selectedTable} /><span>{selectedTable.capacity} seats</span></div>
+            <ul>
+              <li><Eye /> {selectedTable.zone}</li>
+              <li><CircleDot /> {selectedTable.detail}</li>
+              <li><Clock3 /> {time}</li>
+              <li><Users /> {guests} guests</li>
+            </ul>
+            <Button className="see-table-button" disabled={!selectedTable.available} onClick={() => setExperienceView('preview')}>
+              {t.see} <ArrowRight />
             </Button>
-            <p className="reserve-note">Free cancellation until 17:30 · No card required</p>
+            <p>No card required · Free cancellation for 2 hours</p>
+          </aside>
+
+          <section className="spatial-preview" aria-label="View from the selected table">
+            <img src="/og.png" alt={`Atmospheric view from ${selectedTable.id.replace('T', 'Table ')} at Səki`} />
+            <div className="preview-wash" />
+            <button className="preview-back" type="button" onClick={() => setExperienceView('plan')}><ArrowLeft /> {t.back}</button>
+            <div className="preview-place-label">
+              <span>{selectedTable.id.replace('T', 'Table ')}</span>
+              <strong>{selectedTable.zone} · {selectedTable.detail}</strong>
+            </div>
+            <Button className="reserve-on-table" onClick={openReservation}>
+              <small>Səki · {time}</small>
+              <span>{t.reserve}</span>
+            </Button>
+            <div className="preview-orientation"><Compass /><span>Window</span></div>
+          </section>
+        </div>
+      </section>
+
+      <section id="partners" className="partner-section" aria-labelledby="partner-title">
+        <div className="partner-copy">
+          <span className="overline">OTUR for restaurants</span>
+          <h2 id="partner-title">Your dining room,<br /><em>digitally.</em></h2>
+          <p>Let guests understand your space before they arrive—and give your team one calm view of every table.</p>
+          <Button>Bring OTUR to your restaurant <ArrowRight /></Button>
+        </div>
+        <div className="partner-product" aria-label="Restaurant floor plan management preview">
+          <div className="partner-toolbar">
+            <span>Səki · Floor plan</span>
+            <Badge variant="outline">Tonight · 28 covers</Badge>
           </div>
-        </article>
-      </section>
-
-      <section id="how-it-works" className="how-section" aria-labelledby="how-title">
-        <div className="section-intro">
-          <span>01 — 03</span>
-          <h2 id="how-title">From looking<br />to <em>seated.</em></h2>
-          <p>No calls, no “somewhere by the window” requests. You know exactly where the evening begins.</p>
-        </div>
-        <div className="steps-grid">
-          <article>
-            <span className="step-number">01</span>
-            <MapPin />
-            <h3>Find the mood</h3>
-            <p>Explore a calm, curated collection of Baku restaurants by district, cuisine, and occasion.</p>
-          </article>
-          <article>
-            <span className="step-number">02</span>
-            <LocateFixed />
-            <h3>Pick your table</h3>
-            <p>See the floor plan, availability, view, and real atmosphere before you decide.</p>
-          </article>
-          <article>
-            <span className="step-number">03</span>
-            <Check />
-            <h3>Arrive relaxed</h3>
-            <p>Reserve without an account or card, then receive your table details instantly.</p>
-          </article>
+          <div className="partner-workspace">
+            <aside>
+              {partnerTools.map(({ label, icon: Icon }) => (
+                <button key={label} className={partnerMode === label ? 'active' : ''} type="button" onClick={() => setPartnerMode(label)}>
+                  <Icon /> <span>{label}</span>
+                </button>
+              ))}
+            </aside>
+            <div className={`partner-plan mode-${partnerMode.toLowerCase().replace(' ', '-')}`}>
+              <div className="partner-zone zone-a">INDOOR</div><div className="partner-zone zone-b">TERRACE</div>
+              {[18, 38, 61, 78].map((left, index) => <button key={left} type="button" style={{ left: `${left}%`, top: `${index % 2 ? 58 : 31}%` }} aria-label={`Managed table ${index + 1}`}><span>{index + 1}</span></button>)}
+              <output>{partnerMode}: ready</output>
+            </div>
+          </div>
         </div>
       </section>
 
-      <section id="partners" className="partner-cta">
-        <div>
-          <span>For Baku restaurants</span>
-          <h2>Turn your floor plan<br />into your best host.</h2>
-        </div>
-        <div>
-          <p>Give guests confidence before they arrive and make every table easier to discover.</p>
-          <Button variant="secondary">Join the early partner list <span>→</span></Button>
-        </div>
-      </section>
-
-      <footer className="mini-footer">
-        <span>Curated in Baku</span>
-        <span>Good tables. Beautiful moments.</span>
+      <footer className="site-footer">
+        <OturLogo />
+        <p>Most apps help you choose a restaurant.<br />OTUR helps you choose your place inside it.</p>
+        <span>Made thoughtfully in Bakı · 2026</span>
       </footer>
 
-      <Dialog open={isReserveOpen} onOpenChange={setIsReserveOpen}>
-        <DialogContent className="reservation-dialog">
-          {isConfirmed ? (
-            <div className="confirmation-state">
-              <span className="confirmation-icon"><Check /></span>
+      <Dialog open={reservationOpen} onOpenChange={setReservationOpen}>
+        <DialogContent className="reservation-sheet">
+          {confirmed ? (
+            <div className="confirmation">
+              <span className="confirmation-mark"><Check /></span>
               <DialogHeader>
-                <DialogTitle>Table held for you</DialogTitle>
-                <DialogDescription>
-                  {activeTable.label} at Sahil · Friday, 4 September at 19:30
-                </DialogDescription>
+                <DialogTitle>{selectedTable.id.replace('T', 'Table ')} is yours.</DialogTitle>
+                <DialogDescription>Friday · {time} · {guests} guests</DialogDescription>
               </DialogHeader>
-              <p>We sent the reservation details to your phone. See you by the boulevard.</p>
-              <Button onClick={() => setIsReserveOpen(false)}>Done</Button>
+              <div className="confirmation-plan" aria-label="Reserved table location thumbnail">
+                <span className="mini-window">WINDOW</span>
+                {availability.slice(0, 6).map((table) => (
+                  <i key={table.id} className={table.id === selectedTable.id ? 'reserved' : ''} style={{ left: `${table.left}%`, top: `${table.top}%` }}>{table.id.replace('T', '')}</i>
+                ))}
+              </div>
+              <p>We’ll send confirmation to your phone.</p>
+              <div className="confirmation-actions">
+                <Button variant="outline" onClick={() => setActionMessage('Calendar event prepared')}><CalendarPlus /> Add to calendar</Button>
+                <Button variant="outline" onClick={() => setActionMessage('Directions opened')}><MapPin /> Directions</Button>
+                <Button variant="outline" onClick={() => setActionMessage('Share link copied')}><Share2 /> Share</Button>
+              </div>
+              <output aria-live="polite">{actionMessage}</output>
+              <Button className="done-button" onClick={() => setReservationOpen(false)}>Done</Button>
             </div>
           ) : (
             <>
               <DialogHeader>
-                <span className="dialog-kicker">One last step</span>
-                <DialogTitle>Reserve {activeTable.label}</DialogTitle>
-                <DialogDescription>Sahil · Fri, 4 Sep · 19:30 · {guests} guests</DialogDescription>
+                <span className="sheet-kicker">No login · a few seconds</span>
+                <DialogTitle>Reserve {selectedTable.id.replace('T', 'Table ')}</DialogTitle>
+                <DialogDescription>Səki · {date} · {time} · {guests} guests · {selectedTable.zone}</DialogDescription>
               </DialogHeader>
+              <div className="sheet-summary">
+                <TableGlyph table={selectedTable} small />
+                <span><small>Already selected</small><strong>{selectedTable.detail}</strong></span>
+                <Check />
+              </div>
               <form className="reservation-form" onSubmit={submitReservation}>
+                <div><Label htmlFor="name">Name</Label><Input id="name" name="name" autoComplete="name" placeholder="Your full name" required /></div>
                 <div>
-                  <Label htmlFor="guest-name">Full name</Label>
-                  <Input id="guest-name" name="name" placeholder="Your name" required />
+                  <Label htmlFor="phone">Phone number</Label>
+                  <div className="phone-field"><span>+994</span><Input id="phone" name="phone" inputMode="tel" autoComplete="tel" placeholder="50 000 00 00" required /></div>
                 </div>
-                <div>
-                  <Label htmlFor="guest-phone">Phone number</Label>
-                  <Input id="guest-phone" name="phone" type="tel" placeholder="+994 50 000 00 00" required />
-                </div>
-                <div>
-                  <Label htmlFor="guest-note">A note for the restaurant</Label>
-                  <Input id="guest-note" name="note" placeholder="Birthday, accessibility, allergies…" />
-                </div>
-                <Button type="submit" className="reserve-button" size="lg">Confirm reservation</Button>
+                <div><Label htmlFor="email">Email <small>optional</small></Label><div className="icon-field"><Mail /><Input id="email" name="email" type="email" autoComplete="email" placeholder="you@example.com" /></div></div>
+                <div><Label htmlFor="request">Special request <small>optional</small></Label><Input id="request" name="request" placeholder="Allergies, accessibility, celebration…" /></div>
+                <Button className="confirm-button" size="lg" type="submit">{t.confirm} <ArrowRight /></Button>
               </form>
             </>
           )}
