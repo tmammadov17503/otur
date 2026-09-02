@@ -16,8 +16,8 @@
     "build": "vinext build",
     "build:pages": "vite build --config vite.pages.config.ts",
     "start": "wrangler dev --config dist/server/wrangler.json",
-    "test": "node --test --test-isolation=none --experimental-strip-types lib/booking.test.js lib/otur-data.test.ts lib/assets.test.ts",
-    "test:coverage": "node --test --test-isolation=none --experimental-strip-types --experimental-test-coverage lib/booking.test.js lib/otur-data.test.ts lib/assets.test.ts",
+    "test": "node --test --experimental-strip-types lib/booking.test.js lib/otur-data.test.ts lib/assets.test.ts",
+    "test:coverage": "node --test --experimental-strip-types --experimental-test-coverage lib/booking.test.js lib/otur-data.test.ts lib/assets.test.ts",
     "lint": "oxlint",
     "lint:app": "oxlint app components/otur lib pages-src vite.pages.config.ts",
     "format": "oxfmt"
