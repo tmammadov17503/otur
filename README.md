@@ -39,6 +39,16 @@ npm run build:pages
 
 `npm run build` creates the hosted Vinext application. `npm run build:pages` creates the static public build in `pages-dist/` with the correct `/otur/` asset path.
 
+The responsive audit uses Python 3.10+ and Playwright. It checks seven screen sizes in Chromium and WebKit, including touch-enabled phone booking flows:
+
+```bash
+python -m pip install playwright
+python -m playwright install chromium webkit
+python tests/responsive_audit.py
+```
+
+Pass a local or preview URL as the final argument to test an unpublished build. Screenshots are saved under the ignored `work/responsive-audit/` directory.
+
 ## Deployment
 
 Every push to `main` runs the GitHub Pages workflow. It installs from the lockfile, runs coverage and lint checks, builds the static site, and deploys the result to the public demo URL.

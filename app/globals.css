@@ -123,7 +123,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 }
 
 @media (max-width: 760px) {
-  .site-header { width: calc(100% - 32px); height: 68px; grid-template-columns: 1fr auto; }.desktop-nav { display: none; }.mobile-menu-button { display: grid; place-items: center; }.mobile-nav { top: 67px; }
+  .site-header { width: calc(100% - 32px); min-height: 68px; height: auto; grid-template-columns: 1fr auto; padding-block: max(8px, env(safe-area-inset-top)) 8px; }.desktop-nav { display: none; }.mobile-menu-button { display: grid; place-items: center; }.mobile-nav { top: 100%; }
   .hero { width: calc(100% - 32px); margin: 40px auto 24px; grid-template-columns: 1fr; gap: 26px; }.hero h1 { font-size: clamp(50px, 16vw, 72px); }.hero-copy > p:not(.brand-promise) { font-size: 16px; }.hero-model { min-height: 330px; }.hero-model img { height: 330px; }.hero-sequence { left: 12px; right: 12px; top: 12px; justify-content: space-between; }.hero-sequence span { padding-inline: 6px; }.hero-table-marker { right: 16%; top: 58%; }
   .search-rail { width: calc(100% - 20px); margin-bottom: 70px; grid-template-columns: 1fr 1fr; }.search-rail > label, .guest-control { min-height: 76px; padding: 14px; border-bottom: 1px solid var(--line); }.search-rail > label:nth-child(2), .guest-control { border-right: 0; }.primary-action { min-height: 52px; }
   .discovery { width: calc(100% - 32px); margin-bottom: 85px; }.section-heading { align-items: start; flex-direction: column; }.section-heading h2 { font-size: 46px; }.restaurant-search { grid-template-columns: 1fr; }.quick-filters { justify-content: flex-start; flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; }.quick-filters button { flex: 0 0 auto; }
@@ -132,9 +132,51 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .experience-stage { min-height: 730px; grid-template-columns: 1fr; overflow: visible; }.plan-side { min-height: 590px; padding: 20px 12px 16px; border-right: 0; }.plan-titlebar { display: grid; }.availability-key { justify-content: space-between; }.plan-viewport { height: 445px; }.floorplan-canvas { height: 443px; min-width: 620px; }.table-context { position: sticky; z-index: 8; bottom: 0; min-height: 165px; padding: 18px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; border-top: 1px solid var(--line); box-shadow: 0 -8px 25px rgb(55 48 36 / 8%); }.context-kicker { grid-column: 1 / -1; }.context-title { margin: 0; }.context-glyph { height: auto; border: 0; display: flex; justify-content: flex-end; }.context-glyph .table-glyph { transform: scale(.72); }.table-detail, .context-tags { display: none; }.see-table-button { grid-column: 1 / -1; }
   .spatial-preview { position: fixed; min-height: 100svh; }.preview-back { top: max(18px, env(safe-area-inset-top)); left: 16px; }.preview-place-label { left: 18px; bottom: max(22px, env(safe-area-inset-bottom)); max-width: 60%; }.preview-orientation { right: 18px; bottom: max(22px, env(safe-area-inset-bottom)); }.reserve-on-table { top: 70%; min-width: 200px; }
   .restaurant-gallery { width: calc(100% - 24px); grid-template-columns: 1fr 1fr; }.restaurant-gallery .scene-image { min-height: 145px; }.gallery-copy { grid-column: 1 / -1; }
-  .partner-section { width: calc(100% - 32px); margin-bottom: 78px; grid-template-columns: 1fr; gap: 40px; }.partner-copy h2 { font-size: 54px; }.partner-workspace { grid-template-columns: 48px 1fr; }.partner-plan { min-width: 255px; margin: 12px; }
+  .partner-section { width: calc(100% - 32px); margin-bottom: 78px; grid-template-columns: 1fr; gap: 40px; }.partner-copy h2 { font-size: 54px; }.partner-workspace { grid-template-columns: 48px minmax(0, 1fr); }.partner-plan { min-width: 0; margin: 12px; }
   .site-footer { width: calc(100% - 32px); min-height: 210px; grid-template-columns: 1fr; gap: 18px; padding-block: 32px; }.site-footer > span { text-align: left; }
-  .reservation-sheet, .partner-dialog { position: fixed; left: 0; right: 0; top: auto; bottom: 0; width: 100%; max-width: none; max-height: 92svh; transform: none; border-radius: 12px 12px 0 0; padding: 24px 20px max(20px, env(safe-area-inset-bottom)); }.form-grid { grid-template-columns: 1fr; }.choice-grid, .choice-grid.compact { grid-template-columns: 1fr 1fr; }.confirmation-actions { gap: 4px; }
+  .reservation-sheet, .partner-dialog { --tw-translate-x: 0px !important; --tw-translate-y: 0px !important; position: fixed; left: 0 !important; right: 0 !important; top: auto !important; bottom: 0 !important; width: 100%; max-width: none; max-height: 92svh; transform: none !important; border-radius: 12px 12px 0 0; padding: 24px 20px max(20px, env(safe-area-inset-bottom)); }.form-grid { grid-template-columns: 1fr; }.choice-grid, .choice-grid.compact { grid-template-columns: 1fr 1fr; }.confirmation-actions { gap: 4px; }
+
+  .brand { min-height: 44px; display: inline-flex; align-items: center; }
+  .header-actions { gap: 4px; }
+  .language-switch { padding: 2px; }
+  .language-switch button { min-width: 40px; height: 40px; font-size: 12px; }
+  .mobile-menu-button { width: 44px; height: 44px; }
+  .mobile-nav a { min-height: 48px; display: flex; align-items: center; font-size: 14px; }
+
+  .search-rail > label, .guest-control { min-height: 96px; }
+  .search-rail span { font-size: 12px; }
+  .search-rail strong, .search-rail select, .search-rail input { min-height: 40px; font-size: 16px; }
+  .search-rail select, .search-rail input { width: 100%; }
+  .search-rail label:nth-child(3) > svg { bottom: 27px; }
+  .guest-control button { width: 40px; height: 40px; }
+  .primary-action { min-height: 52px; font-size: 14px; }
+
+  .overline, .result-context, .card-area, .availability-preview small, .change-restaurant,
+  .plan-titlebar span, .availability-key span, .availability-key strong, .plan-help,
+  .context-kicker, .context-glyph > span, .preview-place-label strong, .preview-orientation,
+  .sheet-kicker, .sheet-summary small, .site-footer > span { font-size: 12px; }
+  .section-heading p, .restaurant-card p, .gallery-copy p, .no-plan-card p { font-size: 14px; }
+  .search-input input, .reservation-form input, .partner-form input,
+  .reservation-form textarea, .partner-form textarea { font-size: 16px; }
+  .card-meta, .card-tags [data-slot='badge'], .sheet-summary strong,
+  .reservation-sheet [data-slot='dialog-description'], .partner-dialog [data-slot='dialog-description'] { font-size: 13px; }
+
+  .quick-filters button, .availability-preview button { min-height: 40px; font-size: 12px; }
+  .view-restaurant, .change-restaurant, .see-table-button, .preview-back,
+  .partner-copy > button, .no-plan-card button, .partner-workspace aside button,
+  .confirm-button, .choice-grid button, .done-button, .partner-success button { min-height: 44px; font-size: 13px; }
+  .partner-workspace aside button { width: 40px; min-width: 40px; padding-inline: 0; justify-content: center; }
+  .no-plan-card button { display: inline-flex; align-items: center; width: max-content; }
+  .preview-back { font-size: 13px; }
+  .reserve-on-table small { font-size: 12px; }
+  .zoom-controls { width: 144px; height: 40px; grid-template-columns: 40px 1fr 40px; left: calc(100% - 159px); }
+  .zoom-controls button { min-width: 40px; min-height: 40px; }
+  .zoom-controls span { font-size: 12px; }
+
+  .reservation-form label, .partner-form label, .partner-form legend { font-size: 14px; }
+  .reservation-form label small, .partner-form label small, .confirmation-tags span,
+  .confirmation-actions button, .confirmation-sheet output, .choice-grid button { font-size: 12px; }
+  [data-slot='dialog-close'] { min-width: 40px; min-height: 40px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
