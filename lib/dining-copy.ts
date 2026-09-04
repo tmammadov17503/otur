@@ -1,0 +1,32 @@
+export const diningCopy = {
+  EN: {
+    saveRestaurant: 'Save restaurant', removeSaved: 'Remove from saved', savedOnly: 'Saved',
+    savedHere: 'Your shortlist, saved on this device.', storageFallback: 'Saved for this visit. Browser storage is unavailable.',
+    seatPreference: 'Your kind of seat', anySeat: 'Surprise me', suggestSeat: 'Find my seat',
+    matchNote: 'A good fit for your group and preference.', noMatch: 'No matching table at this time. Try another preference or time.',
+    noAvailable: 'No tables for this group and time. Try another time or a smaller group.',
+    calendarDownloaded: 'Calendar file downloaded. Open it to add your plan.', sharedCopied: 'Plan link copied — ready to send.',
+    shareFallback: 'Copy this link to share your plan.', demoPlan: 'Demo only. No reservation has been sent to the restaurant.',
+    backToTable: 'See your table', planSaved: 'Your dining plan', planReady: 'Your evening, planned.',
+  },
+  AZ: {
+    saveRestaurant: 'Restoranı yadda saxla', removeSaved: 'Yadda saxlanmışlardan sil', savedOnly: 'Seçilmişlər',
+    savedHere: 'Seçimləriniz bu cihazda saxlanılır.', storageFallback: 'Bu ziyarət üçün saxlanıldı. Brauzer yaddaşı əlçatan deyil.',
+    seatPreference: 'Sizə uyğun yer', anySeat: 'Fərqi yoxdur', suggestSeat: 'Mənə masa tap',
+    matchNote: 'Qrupunuza və seçiminizə uyğun masa.', noMatch: 'Bu saat üçün uyğun masa yoxdur. Başqa seçim və ya saat sınayın.',
+    noAvailable: 'Bu qrup və saat üçün masa yoxdur. Başqa saat və ya daha az qonaq seçin.',
+    calendarDownloaded: 'Təqvim faylı endirildi. Planınızı əlavə etmək üçün açın.', sharedCopied: 'Planın keçidi kopyalandı.',
+    shareFallback: 'Planı paylaşmaq üçün keçidi kopyalayın.', demoPlan: 'Yalnız demo. Restorana rezervasiya göndərilməyib.',
+    backToTable: 'Masanıza baxın', planSaved: 'Yemək planınız', planReady: 'Gözəl bir plan hazırdır.',
+  },
+  RU: {
+    saveRestaurant: 'Сохранить ресторан', removeSaved: 'Убрать из избранного', savedOnly: 'Избранное',
+    savedHere: 'Избранное хранится на этом устройстве.', storageFallback: 'Сохранено на время визита. Хранилище браузера недоступно.',
+    seatPreference: 'Ваше любимое место', anySeat: 'На ваш выбор', suggestSeat: 'Подобрать столик',
+    matchNote: 'Подходит вашей компании и пожеланиям.', noMatch: 'Подходящих столиков нет. Измените пожелание или время.',
+    noAvailable: 'Нет столиков для этой компании и времени. Выберите другое время или меньше гостей.',
+    calendarDownloaded: 'Файл календаря скачан. Откройте его, чтобы добавить план.', sharedCopied: 'Ссылка на план скопирована.',
+    shareFallback: 'Скопируйте ссылку, чтобы поделиться планом.', demoPlan: 'Только демо. Бронь не отправлена в ресторан.',
+    backToTable: 'Ваш столик', planSaved: 'Ваш план ужина', planReady: 'Прекрасный план готов.',
+  },
+} as const;

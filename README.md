@@ -13,6 +13,10 @@ OTUR is a calm, visual restaurant reservation prototype for Baku. Guests can dis
 - Interactive floor plans with table capacity and availability
 - Table-level spatial previews and a lightweight reservation flow
 - Responsive layouts for desktop and mobile
+- Private, device-local restaurant favorites (no account required)
+- Table suggestions by atmosphere, party size, and simulated availability
+- Shareable dining plans and downloadable calendar files in Baku time
+- Subtle cutlery artwork and pointer-responsive depth, respecting reduced motion
 - A restaurant-partner floor-plan editor concept
 - Automated tests, linting, production builds, and GitHub Pages deployment
 
@@ -45,6 +49,7 @@ The responsive audit uses Python 3.10+ and Playwright. It checks seven screen si
 python -m pip install playwright
 python -m playwright install chromium webkit
 python tests/responsive_audit.py
+python tests/dining_features.py https://tmammadov17503.github.io/otur/
 ```
 
 Pass a local or preview URL as the final argument to test an unpublished build. Screenshots are saved under the ignored `work/responsive-audit/` directory.
@@ -56,6 +61,12 @@ Every push to `main` runs the GitHub Pages workflow. It installs from the lockfi
 ## Prototype status
 
 Restaurant data, availability, and reservations are simulated in the browser. A production release would connect these flows to restaurant inventory, authentication, notifications, and a secure booking API.
+
+Favorites store restaurant IDs only on the current device. Contact details are never included in storage, shared links, or calendar files. A shared link restores a proposed restaurant, table, date, time, and guest count; it does not hold inventory. Calendar entries are tentative two-hour plans, not confirmed reservations.
+
+## Visual asset
+
+`public/dining-cutlery.png` was generated with the built-in image-generation tool in transparent-background mode. Prompt: “Exactly two sculptural full-length utensils, one dinner fork with four tines and one elegant dinner knife, floating diagonally together with generous negative space; slight three-quarter perspective, gently rounded contemporary forms; polished photorealistic 3D studio product render for OTUR’s premium reservation website. Genuinely transparent alpha background, clean cutout edges, square composition, both entirely visible and recognizable at 200–350px. Soft studio light, calm editorial mood, realistic brushed champagne metal, warm highlights and muted sage reflections, controlled satin sheen. No text, logo, watermark, food, plate, table, hands, extra objects, glow haze, or background scene.”
 
 ## License
 
