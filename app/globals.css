@@ -203,6 +203,27 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .seat-feedback { display: block; margin: -4px 0 15px; color: #607154; font-size: 12px; line-height: 1.55; }
 .prototype-note { margin: 0; padding: 10px 12px; background: #eeeadd; color: #716551; font-size: 12px; line-height: 1.5; }
 .share-link { width: 100%; min-width: 0; font-size: 16px; }
+.discovery, .restaurant-experience, .partner-section { position: relative; isolation: isolate; }
+.dining-scatter { position: absolute; inset: 0; z-index: -1; pointer-events: none; user-select: none; }
+.dining-motif { position: absolute; display: grid; place-items: center; color: #8c775f; opacity: .3; }
+.dining-motif:nth-child(3n) { color: #778871; opacity: .34; }
+.dining-motif svg { width: 100%; height: 100%; overflow: hidden; filter: drop-shadow(1px 2px 0 #fffdf7) drop-shadow(0 3px 2px rgb(75 58 35 / 15%)); animation: motif-drift 14s ease-in-out infinite alternate; }
+.dining-motif:nth-child(even) svg { animation-delay: -7s; animation-duration: 18s; }
+.motif-fork svg { width: 58%; }
+.motif-knife svg { width: 42%; }
+@keyframes motif-drift { to { transform: translate3d(2px, -6px, 0) rotate(7deg); } }
+.discovery::before, .partner-section::before { content: ''; position: absolute; z-index: -2; pointer-events: none; mask-image: radial-gradient(ellipse at center, #000 35%, transparent 72%); }
+.discovery::before { inset: 40px -14vw -80px; background: radial-gradient(ellipse at 92% 16%, rgb(143 157 137 / 17%), transparent 38%), radial-gradient(ellipse at 6% 87%, rgb(184 110 85 / 8%), transparent 35%); }
+.partner-section::before { inset: -65px -9vw -75px; background: radial-gradient(ellipse at 88% 85%, rgb(143 157 137 / 20%), transparent 44%), radial-gradient(ellipse at 8% 24%, rgb(202 174 126 / 9%), transparent 35%); }
+.ambient-object { position: absolute; z-index: -1; pointer-events: none; user-select: none; }
+.ambient-object img { display: block; width: 100%; height: auto; animation: ambient-drift 12s ease-in-out infinite alternate; }
+.ambient-plates { width: 290px; right: -105px; top: -150px; opacity: .48; transform: rotate(-14deg); }
+.ambient-cutlery { width: 290px; left: -180px; bottom: -130px; opacity: .36; transform: rotate(38deg); }
+.ambient-cutlery img { animation-delay: -5s; animation-duration: 15s; }
+.ambient-room { width: 290px; right: -125px; bottom: -105px; opacity: .48; transform: rotate(-7deg); }
+.ambient-room img { animation-delay: -3s; animation-duration: 14s; }
+.partner-product { box-shadow: 0 18px 0 -10px #e3e5d9, 0 19px 0 -10px #c5cbbb, 0 35px 60px rgb(57 61 45 / 10%); }
+@keyframes ambient-drift { from { transform: translate3d(0, 0, 0) rotate(-1deg); } to { transform: translate3d(4px, -12px, 0) rotate(2deg); } }
 @keyframes cutlery-float { to { transform: translate3d(8px, -16px, 0) rotate(4deg); } }
 @media (hover: hover) and (pointer: fine) {
   .restaurant-card:hover { transform: perspective(1200px) translateY(-7px) rotateX(1deg); box-shadow: 0 28px 48px rgb(56 47 35 / 13%); }
@@ -210,6 +231,15 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 }
 @media (min-width: 761px) and (max-width: 1000px) { .restaurant-card:last-child .save-restaurant { right: calc(50% + 14px); } }
 @media (max-width: 760px) {
+  .dining-motif { max-width: 24px; max-height: 24px; opacity: .22; }
+  .dining-motif:nth-child(3n) { opacity: .25; }
+  .scatter-discovery .dining-motif:nth-child(2), .scatter-discovery .dining-motif:nth-child(3),
+  .scatter-partners .dining-motif:nth-child(2) { display: none; }
+  .ambient-plates { width: 180px; top: -85px; right: -55px; opacity: .44; }
+  .ambient-cutlery { width: 170px; left: -100px; bottom: -76px; opacity: .32; }
+  .ambient-room { width: 210px; right: -75px; bottom: -80px; opacity: .52; }
+  .discovery::before { inset: 0 -16px -35px; }
+  .partner-section::before { inset: -25px -16px -45px; }
   .dining-accent { width: 240px; left: auto; right: -85px; bottom: auto; top: -35px; opacity: .22; }
   .hero-copy { padding-right: 8px; }
   .depth-surface::after { inset: 8px -7px -8px 7px; }
@@ -224,6 +254,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .confirmation-actions button svg { margin: 0; }
 }
 @media (hover: none), (prefers-reduced-motion: reduce) {
+  .dining-motif svg { animation: none; }
+  .ambient-object img { animation: none; }
   .depth-surface { transform: none; }
   .restaurant-card:hover { transform: none; }
 }

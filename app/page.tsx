@@ -10,6 +10,8 @@ import {
 
 import { BookingDialog } from '@/components/otur/booking-dialog';
 import { DepthSurface } from '@/components/otur/depth-surface';
+import { DiningAccent } from '@/components/otur/dining-accent';
+import { DiningScatter } from '@/components/otur/dining-scatter';
 import { FloorPlan } from '@/components/otur/floor-plan';
 import { PartnerDialog } from '@/components/otur/partner-dialog';
 import { TableGlyph } from '@/components/otur/table-glyph';
@@ -187,6 +189,9 @@ export default function Home() {
       </section>
 
       <section id="discover" className={`discovery ${searchPerformed ? 'search-active' : ''}`} aria-labelledby="discover-title">
+        <DiningScatter variant="discovery" />
+        <DiningAccent kind="plates" />
+        <DiningAccent kind="cutlery" />
         <div className="section-heading"><div><span className="overline">03 · BAKU</span><h2 id="discover-title">{t.discoveryTitle}</h2><p>{t.discoveryIntro}</p></div><span className="result-context"><CalendarDays />{date} · {time} · {guests}</span></div>
         <div className="restaurant-search"><div className="search-input"><Search /><Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={t.searchPlaceholder} /></div><div className="quick-filters">{quickFilters.map((filter) => <button key={filter} type="button" className={activeFilter === filter ? 'active' : ''} onClick={() => setActiveFilter(filter)}>{filterLabel(filter)}</button>)}</div></div>
         <div className="shortlist-bar"><button className="saved-filter" type="button" aria-pressed={savedOnly} onClick={() => setSavedOnly(!savedOnly)}><Heart />{t.savedOnly}<span>{favorites.length}</span></button><output>{storageUnavailable ? t.storageFallback : t.savedHere}</output></div>
@@ -200,6 +205,7 @@ export default function Home() {
       </section>
 
       <section id="restaurant" className="restaurant-experience" aria-labelledby="restaurant-title">
+        <DiningScatter variant="experience" />
         <header className="restaurant-header"><div><button type="button" className="change-restaurant" onClick={() => document.getElementById('discover')?.scrollIntoView({ behavior: 'smooth' })}><ArrowLeft />{t.changeRestaurant}</button><span className="overline">{localize(restaurant.atmosphere, language)}</span><h2 id="restaurant-title">{restaurant.name}</h2><p>{localize(restaurant.description, language)}</p></div><dl className="restaurant-facts"><div><dt>{t.cuisine}</dt><dd>{localize(restaurant.cuisine, language)}</dd></div><div><dt>{t.price}</dt><dd>{restaurant.price}</dd></div><div><dt>{t.hours}</dt><dd>{restaurant.hours}</dd></div><div><dt>{t.rating}</dt><dd><Star />{restaurant.rating}</dd></div></dl></header>
         <div className={`experience-stage ${experienceView === 'preview' ? 'show-preview' : ''} ${transitioning ? 'zooming' : ''}`}>
           <section className="plan-side" aria-label={t.choose}>
@@ -215,6 +221,8 @@ export default function Home() {
       </section>
 
       <section id="partners" className="partner-section">
+        <DiningScatter variant="partners" />
+        <DiningAccent kind="room" />
         <div className="partner-copy"><span className="overline">{t.partnerOverline}</span><h2>{t.partnerHeadlineA}<br /><em>{t.partnerHeadlineB}</em></h2><p>{t.partnerCopy}</p><Button onClick={() => setPartnerOpen(true)}>{t.bringOtur}<ArrowRight /></Button><div className="no-plan-card"><FileUp /><div><strong>{t.noPlan}</strong><p>{t.noPlanCopy}</p><button type="button" onClick={() => setPartnerOpen(true)}>{t.sendPlan}</button></div></div></div>
         <div className="partner-product"><div className="partner-toolbar"><strong>{t.partnerTools}</strong><Badge variant="outline">OTUR · LIVE PLAN</Badge></div><div className="partner-workspace"><aside>{partnerToolKeys.map(({ key, icon: Icon }) => <button key={key} type="button" className={partnerMode === key ? 'active' : ''} onClick={() => setPartnerMode(key)}><Icon /><span>{labels[key]}</span></button>)}</aside><div className={`partner-plan mode-${partnerMode}`}><span className="partner-zone zone-a">{t.indoorZone}</span><span className="partner-zone zone-b">{t.terraceZone}</span>{[[22, 26], [49, 23], [75, 29], [30, 63], [61, 62], [84, 69]].map(([left, top], index) => <button key={index} type="button" style={{ left: `${left}%`, top: `${top}%` }}><span>{index + 1}</span></button>)}<output>{labels[partnerMode]}</output></div></div></div>
       </section>
