@@ -1,6 +1,7 @@
 export const diningCopy = {
   EN: {
     interiorConcept: 'Interior concept', interiorDisclaimer: 'Illustrative interior, not an exact table view.',
+    pauseMotion: 'Pause interior motion', playMotion: 'Play interior motion',
     saveRestaurant: 'Save restaurant', removeSaved: 'Remove from saved', savedOnly: 'Saved',
     savedHere: 'Your shortlist, saved on this device.', storageFallback: 'Saved for this visit. Browser storage is unavailable.',
     seatPreference: 'Your kind of seat', anySeat: 'Surprise me', suggestSeat: 'Find my seat',
@@ -12,6 +13,7 @@ export const diningCopy = {
   },
   AZ: {
     interiorConcept: 'İnteryer konsepti', interiorDisclaimer: 'Nümunə interyer — masadan dəqiq görünüş deyil.',
+    pauseMotion: 'İnteryer hərəkətini dayandır', playMotion: 'İnteryer hərəkətini başlat',
     saveRestaurant: 'Restoranı yadda saxla', removeSaved: 'Yadda saxlanmışlardan sil', savedOnly: 'Seçilmişlər',
     savedHere: 'Seçimləriniz bu cihazda saxlanılır.', storageFallback: 'Bu ziyarət üçün saxlanıldı. Brauzer yaddaşı əlçatan deyil.',
     seatPreference: 'Sizə uyğun yer', anySeat: 'Fərqi yoxdur', suggestSeat: 'Mənə masa tap',
@@ -23,6 +25,7 @@ export const diningCopy = {
   },
   RU: {
     interiorConcept: 'Концепция интерьера', interiorDisclaimer: 'Иллюстрация интерьера, не точный вид со столика.',
+    pauseMotion: 'Остановить движение', playMotion: 'Включить движение',
     saveRestaurant: 'Сохранить ресторан', removeSaved: 'Убрать из избранного', savedOnly: 'Избранное',
     savedHere: 'Избранное хранится на этом устройстве.', storageFallback: 'Сохранено на время визита. Хранилище браузера недоступно.',
     seatPreference: 'Ваше любимое место', anySeat: 'На ваш выбор', suggestSeat: 'Подобрать столик',

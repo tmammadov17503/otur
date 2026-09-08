@@ -1,7 +1,8 @@
 'use client';
 
-import { useRef, useState, type PointerEvent } from 'react';
+import { useEffect, useRef, useState, type PointerEvent } from 'react';
 import Image from 'next/image';
+import { Pause, Play } from 'lucide-react';
 import { assetUrl } from '@/lib/assets';
 
 type PreviewSceneProps = {
@@ -9,12 +10,35 @@ type PreviewSceneProps = {
   label: string;
   fallback: string;
   scene: number;
+  pauseMotion: string;
+  playMotion: string;
 };
 
-/** Full-frame concept interior; never enlarge a contact-sheet crop for this view. */
-export function PreviewScene({ restaurantId, label, fallback, scene }: PreviewSceneProps) {
+type DataAwareNavigator = Navigator & {
+  connection?: { effectiveType?: string; saveData?: boolean };
+};
+
+/** Full-frame concept interior with an on-demand, data-aware cinematic layer. */
+export function PreviewScene({ restaurantId, label, fallback, scene, pauseMotion, playMotion }: PreviewSceneProps) {
   const surface = useRef<HTMLDivElement>(null);
+  const video = useRef<HTMLVideoElement>(null);
   const [failed, setFailed] = useState(false);
+  const [motionAllowed, setMotionAllowed] = useState(false);
+  const [motionFailed, setMotionFailed] = useState(false);
+  const [motionReady, setMotionReady] = useState(false);
+  const [paused, setPaused] = useState(false);
+
+  useEffect(() => {
+    const preference = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const connection = (navigator as DataAwareNavigator).connection;
+    const syncPreference = () => {
+      const constrained = connection?.saveData || ['slow-2g', '2g'].includes(connection?.effectiveType ?? '');
+      setMotionAllowed(!preference.matches && !constrained);
+    };
+    syncPreference();
+    preference.addEventListener('change', syncPreference);
+    return () => preference.removeEventListener('change', syncPreference);
+  }, []);
 
   function move(event: PointerEvent<HTMLDivElement>) {
     if (event.pointerType !== 'mouse' || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -32,6 +56,17 @@ export function PreviewScene({ restaurantId, label, fallback, scene }: PreviewSc
     surface.current?.style.setProperty('--preview-y', '0px');
   }
 
+  function toggleMotion() {
+    const player = video.current;
+    if (!player) return;
+    if (player.paused) {
+      void player.play().then(() => setPaused(false)).catch(() => setPaused(true));
+      return;
+    }
+    player.pause();
+    setPaused(true);
+  }
+
   return (
     <div ref={surface} className="preview-photo" onPointerMove={move} onPointerLeave={reset} onPointerCancel={reset}>
       {failed ? (
@@ -40,6 +75,19 @@ export function PreviewScene({ restaurantId, label, fallback, scene }: PreviewSc
       ) : (
         <Image src={assetUrl(`/restaurants/${restaurantId}-interior.webp`, import.meta.env.BASE_URL)}
           alt={label} fill unoptimized sizes="100vw" loading="eager" onError={() => setFailed(true)} />
+      )}
+      {motionAllowed && !motionFailed && (
+        <video ref={video} className={motionReady ? 'is-ready' : undefined}
+          src={assetUrl(`/restaurants/${restaurantId}-motion.mp4`, import.meta.env.BASE_URL)}
+          poster={assetUrl(`/restaurants/${restaurantId}-interior.webp`, import.meta.env.BASE_URL)}
+          muted loop playsInline autoPlay preload="metadata" aria-hidden="true"
+          onCanPlay={() => setMotionReady(true)} onError={() => setMotionFailed(true)}
+          onPause={() => setPaused(true)} onPlay={() => setPaused(false)} />
+      )}
+      {motionAllowed && motionReady && !motionFailed && (
+        <button className="preview-motion-toggle" type="button" onClick={toggleMotion}
+          aria-label={paused ? playMotion : pauseMotion} title={paused ? playMotion : pauseMotion}
+          aria-pressed={paused}>{paused ? <Play /> : <Pause />}</button>
       )}
     </div>
   );

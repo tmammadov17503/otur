@@ -28,6 +28,16 @@ def audit(browser, url, width):
         expect(photo).to_be_visible()
         photo.evaluate("el => el.decode()")
         assert photo.evaluate("el => el.naturalWidth >= 1500"), "Full-frame image required"
+        motion = page.locator(".preview-photo video")
+        expect(motion).to_be_visible()
+        motion.evaluate("el => new Promise((resolve, reject) => { if (el.readyState >= 2) return resolve(); el.addEventListener('loadeddata', resolve, { once: true }); el.addEventListener('error', reject, { once: true }); })")
+        assert motion.evaluate("el => el.videoWidth >= 1200 && el.duration >= 5"), "Web-ready interior motion required"
+        motion_toggle = page.locator(".preview-motion-toggle")
+        expect(motion_toggle).to_be_visible()
+        motion_toggle.click()
+        expect(motion_toggle).to_have_attribute("aria-pressed", "true")
+        motion_toggle.click()
+        expect(motion_toggle).to_have_attribute("aria-pressed", "false")
         expect(page.locator(".preview-image-note")).to_be_visible()
         if index == 0:
             page.screenshot(path=f"work/comfort/{browser.browser_type.name}-{width}-preview.png")
@@ -54,6 +64,9 @@ def audit(browser, url, width):
     expect(dialog.locator(".partner-success")).to_be_visible()
     page.keyboard.press("Escape")
     page.emulate_media(reduced_motion="reduce")
+    page.locator(".see-table-button").click()
+    expect(page.locator(".preview-photo img")).to_be_visible()
+    expect(page.locator(".preview-photo video")).to_have_count(0)
     assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
     assert not errors, errors
     context.close()

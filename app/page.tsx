@@ -217,7 +217,7 @@ export default function Home() {
           </section>
           <aside className="table-context"><span className="context-kicker">{t.whyThis}</span><div className="context-title"><h3>{selectedTable.available ? selectedTable.id : '—'}</h3>{selectedTable.available && <Badge className="status-available"><Check />{t.available}</Badge>}</div><div className="context-glyph"><TableGlyph table={selectedTable} /><span>{selectedTable.capacity} {t.seats} · {time}</span></div><p className="table-detail">{selectedTable.available ? localize(selectedTable.detail, language) : t.noAvailable}</p><div className="context-tags">{selectedTable.available && selectedTable.tags.slice(0, 3).map((tag) => <span key={tag}>{localizeTag(tag, language)}</span>)}</div><Button className="see-table-button" disabled={!selectedTable.available} onClick={seeSelectedTable}>{t.see}<Eye /></Button></aside>
           <section className="spatial-preview" aria-label={t.previewHint}>
-            {experienceView === 'preview' && <PreviewScene key={restaurant.id} restaurantId={restaurant.id} fallback={restaurant.image} scene={selectedTable.scene} label={`${restaurant.name} · ${t.interiorConcept}`} />}
+            {experienceView === 'preview' && <PreviewScene key={restaurant.id} restaurantId={restaurant.id} fallback={restaurant.image} scene={selectedTable.scene} label={`${restaurant.name} · ${t.interiorConcept}`} pauseMotion={t.pauseMotion} playMotion={t.playMotion} />}
             <div className="preview-wash" />
             <button className="preview-back" type="button" onClick={() => setExperienceView('plan')}><ArrowLeft />{t.back}</button>
             <span className="preview-image-note"><Eye />{t.interiorConcept}</span>

@@ -11,7 +11,7 @@ OTUR is a calm, visual restaurant reservation prototype for Baku. Guests can dis
 - Azerbaijani, English, and Russian interface copy
 - Search and atmosphere filters for Baku restaurants
 - Interactive floor plans with table capacity and availability
-- Table-level spatial previews and a lightweight reservation flow
+- Table-level spatial previews with restaurant-specific cinematic motion and a lightweight reservation flow
 - Responsive layouts for desktop and mobile
 - Private, device-local restaurant favorites (no account required)
 - Table suggestions by atmosphere, party size, and simulated availability
@@ -89,6 +89,8 @@ Final dining-vignette prompt:
 ### Full-frame interior previews
 
 Three reference-guided interiors were generated with built-in imagegen. The final WebP assets are `public/restaurants/seki-interior.webp` (1537 × 1023), `hayat-interior.webp` and `xazri-interior.webp` (both 1536 × 1024), encoded at quality 94 without resizing. Compared with the old 836 × 470 contact-sheet quadrants, they provide about four times the image pixels. These are shared concept interiors per restaurant, not exact views from individual tables. Existing four-angle galleries remain available. The preview loads only when opened, falls back to the original sheet on image failure, and respects reduced motion.
+
+Each interior also has a six-second, silent Higgsfield motion study: `seki-motion.mp4`, `hayat-motion.mp4`, and `xazri-motion.mp4`. The web encodes are 1280 pixels wide, H.264, 24 fps, fast-start enabled, and about 2.2 MB combined. They are requested only after a guest opens a table preview, crossfade over the full-resolution WebP poster, include a localized play/pause control, and stay disabled when reduced motion, Save-Data, or a 2G connection is detected.
 
 The requested resolution in the prompts below was higher than the tool's delivered resolution; the dimensions above describe the actual assets.
 
