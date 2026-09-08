@@ -80,9 +80,9 @@ export function PartnerDialog({ open, onOpenChange, labels }: PartnerDialogProps
                 <div><Label htmlFor="partner-district">{labels.district}</Label><Input id="partner-district" /></div>
                 <div><Label htmlFor="partner-tables">{labels.tableCount}</Label><Input id="partner-tables" type="number" min="1" inputMode="numeric" /></div>
               </div>
-              <fieldset><legend>{labels.has}</legend><div className="choice-grid">{seatingOptions.map((option) => <button key={option} type="button" className={seating.includes(option) ? 'active' : ''} onClick={() => toggleSeating(option)}>{seating.includes(option) && <Check />}{option}</button>)}</div></fieldset>
+              <fieldset><legend>{labels.has}</legend><div className="choice-grid">{seatingOptions.map((option) => <button key={option} type="button" aria-pressed={seating.includes(option)} className={seating.includes(option) ? 'active' : ''} onClick={() => toggleSeating(option)}>{seating.includes(option) && <Check />}{option}</button>)}</div></fieldset>
               <fieldset><legend>{labels.acceptReservations}</legend><div className="choice-row"><label><input type="radio" name="accepts" defaultChecked />{labels.yes}</label><label><input type="radio" name="accepts" />{labels.no}</label></div></fieldset>
-              <fieldset><legend>{labels.manage}</legend><div className="choice-grid compact">{managementOptions.map((option) => <button key={option} type="button" className={management === option ? 'active' : ''} onClick={() => setManagement(option)}>{option}</button>)}</div></fieldset>
+              <fieldset><legend>{labels.manage}</legend><div className="choice-grid compact">{managementOptions.map((option) => <button key={option} type="button" aria-pressed={management === option} className={management === option ? 'active' : ''} onClick={() => setManagement(option)}>{option}</button>)}</div></fieldset>
               <div className="upload-control">
                 <Label htmlFor="floor-upload"><FileUp />{uploaded ? labels.uploaded : labels.upload}<small>{labels.uploadOptional}</small></Label>
                 <Input id="floor-upload" type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={(event) => setUploaded(Boolean(event.target.files?.length))} />

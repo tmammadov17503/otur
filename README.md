@@ -86,6 +86,47 @@ Final dining-vignette prompt:
 
 > Use case: product-mockup. Asset type: transparent decorative 3D PNG for OTUR, a calm premium Baku restaurant website; soft floating restaurant-partner section accent displayed at 200–300px. Scene/backdrop: genuinely transparent background with real alpha, no floor, platform, or surrounding scene. Subject: miniature architectural restaurant vignette composed of exactly one small round walnut dining table and two sculptural muted-sage upholstered chairs, with simple tiny ivory place settings on the table. Style/medium: premium photorealistic 3D model, restrained detail and sophisticated materials; subtle walnut grain and softly textured upholstery, visually cohesive with warm ivory ceramic and pale sage linen product renders. Composition/framing: square image, isometric three-quarter view, all furniture fully visible, clean full silhouette that reads clearly at 200–300px, compact centered arrangement with generous transparent margin. Lighting/mood: very soft warm studio light, calm and welcoming; gentle dimensional object self-shadows, any soft contact shadow contained close to furniture and fading fully to transparent, no square backdrop. Color palette: warm walnut, muted sage upholstery, tiny ivory table settings, compatible with champagne metal. Constraints: genuine transparent alpha around and between all objects. No floor, ground plane, platform, surrounding scene, people, food, lettering, text, logo, watermark, additional furnishings, or painted checkerboard.
 
+### Full-frame interior previews
+
+Three reference-guided interiors were generated with built-in imagegen. The final WebP assets are `public/restaurants/seki-interior.webp` (1537 × 1023), `hayat-interior.webp` and `xazri-interior.webp` (both 1536 × 1024), encoded at quality 94 without resizing. Compared with the old 836 × 470 contact-sheet quadrants, they provide about four times the image pixels. These are shared concept interiors per restaurant, not exact views from individual tables. Existing four-angle galleries remain available. The preview loads only when opened, falls back to the original sheet on image failure, and respects reduced motion.
+
+The requested resolution in the prompts below was higher than the tool's delivered resolution; the dimensions above describe the actual assets.
+
+Final seki prompt:
+
+> Use case: photorealistic-natural.
+> Asset type: high-resolution restaurant interior image for the OTUR Baku reservation prototype.
+> Primary request: Generate ONE standalone full-frame landscape architectural photograph of an illustrative, simulated Baku heritage restaurant called Şəki. This is not documentation of an actual venue.
+> Input image 1: design reference only. Preserve its warm limestone arches, walnut ceiling beams and intricate walnut lattice details, muted rust upholstery, traditional woven rugs, amber glass and natural linen palette. Do not reproduce its four-panel layout.
+> Scene and subject: inviting heritage dining room with tall pointed stone arches and carved walnut details, a large linen-covered dining table prominently in the foreground, neatly arranged white ceramic plates, cloth napkins, cutlery and amber drinking glasses. Woven patterned rug visible beneath the tables. Background dining tables extend naturally through the room.
+> Style and framing: crisp photorealistic hospitality architectural photography, one continuous wide 3:2 landscape composition, eye-level wide lens with straight architectural verticals and natural proportions. Request 3072x2048 pixels or the highest practical native landscape resolution.
+> Lighting: inviting warm late-afternoon interior light with balanced exposure showing the stone texture and walnut grain clearly. Sharp throughout from foreground table to distant room, deep focus, fine linen weave and rug details.
+> Constraints: exactly one image and one viewpoint, edge-to-edge scene, no split screen, no collage, no grid, no contact sheet, no borders, no people, no text, no signs, no logo, no watermark, no depth-of-field blur, no soft-focus filter.
+
+Final hayat prompt:
+
+> Use case: photorealistic-natural.
+> Asset type: high-resolution restaurant interior image for the OTUR Baku reservation prototype.
+> Primary request: Generate ONE standalone full-frame landscape architectural photograph of an illustrative, simulated leafy modern garden courtyard restaurant in Baku called Həyat. This is not documentation of an actual venue.
+> Input image 1: design reference only. Preserve its leafy garden atmosphere, olive and sage upholstery, natural oak dining furniture, pale textured stone, woven wood canopy and indoor-outdoor planted terrace architecture. Do not reproduce its four-panel layout.
+> Scene and subject: a calm garden dining courtyard connected to a modern stone dining room, lush mature trees and planting integrated with a planted terrace; a beautifully set wooden dining table in the foreground with ceramic plates, sage linen napkins, clear stemware and restrained small greenery arrangement; olive/sage cushioned chairs and more tables extending toward the open terrace.
+> Style and framing: crisp photorealistic hospitality architectural photography, one continuous wide 3:2 landscape composition, eye-level wide lens with straight architectural verticals and natural proportions. Request 3072x2048 pixels or the highest practical native landscape resolution.
+> Lighting: natural late-afternoon sunlight filtered through leaves, balanced exposure and open shadows. Sharp throughout from foreground table to background terrace, deep focus, visible leaf edges, linen weave, stone texture and wood grain.
+> Constraints: exactly one image and one viewpoint, edge-to-edge scene, no split screen, no collage, no grid, no contact sheet, no borders, no people, no text, no signs, no logo, no watermark, no depth-of-field blur, no soft-focus filter.
+
+Final xazri prompt:
+
+> Use case: photorealistic-natural.
+> Asset type: high-resolution restaurant interior image for the OTUR Baku reservation prototype.
+> Primary request: Generate ONE standalone full-frame landscape architectural photograph of an illustrative, simulated serene modern Caspian sea-facing restaurant in Baku called Xəzri. This is not documentation of an actual venue.
+> Input image 1: design reference only. Preserve its pale limestone structure, light timber slatted ceiling, cream upholstered curved dining chairs, natural wood frames, linen-covered tables, sea-green glass and restrained olive trees in ceramic pots. Do not reproduce its four-panel layout.
+> Scene and subject: airy modern dining room with broad floor-to-ceiling windows opening visually to the Caspian Sea and the Baku coastline, a cream linen-covered dining table prominently in the foreground, elegant white plates, folded linen napkins, cutlery and pale sea-green drinking glasses. More cream and wood dining furniture arranged naturally toward the coast-facing windows.
+> Style and framing: crisp photorealistic hospitality architectural photography, one continuous wide 3:2 landscape composition, eye-level wide lens with straight architectural verticals and natural proportions. Request 3072x2048 pixels or the highest practical native landscape resolution.
+> Lighting: serene soft warm daylight with balanced interior and sea exposure, pale blue water and warm cream stone. Sharp throughout from foreground table to windows and visible coast, deep focus, fine fabric texture, limestone grain and wood detail.
+> Constraints: exactly one image and one viewpoint, edge-to-edge scene, no split screen, no collage, no grid, no contact sheet, no borders, no people, no text, no signs, no logo, no watermark, no depth-of-field blur, no soft-focus filter.
+
+Run `python tests/preview_comfort.py URL` for full-frame loading, readable type and touch targets, reservation navigation and partner form submission on Chromium and WebKit at phone and desktop sizes.
+
 ## License
 
 This project is licensed under the [GNU General Public License v3.0](LICENSE).

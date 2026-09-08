@@ -14,6 +14,7 @@ import { DiningAccent } from '@/components/otur/dining-accent';
 import { DiningScatter } from '@/components/otur/dining-scatter';
 import { FloorPlan } from '@/components/otur/floor-plan';
 import { PartnerDialog } from '@/components/otur/partner-dialog';
+import { PreviewScene } from '@/components/otur/preview-scene';
 import { TableGlyph } from '@/components/otur/table-glyph';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -215,7 +216,15 @@ export default function Home() {
             <FloorPlan restaurant={restaurant} tables={availability} selectedId={selectedTable.available ? selectedTable.id : ''} language={language} labels={labels} scale={planScale} onScale={setPlanScale} onSelect={(id) => { setSelectedTableId(id); setSuggestionStatus(null); setExperienceView('plan'); }} /><p className="plan-help"><CircleDot />{t.planHelp}</p>
           </section>
           <aside className="table-context"><span className="context-kicker">{t.whyThis}</span><div className="context-title"><h3>{selectedTable.available ? selectedTable.id : '—'}</h3>{selectedTable.available && <Badge className="status-available"><Check />{t.available}</Badge>}</div><div className="context-glyph"><TableGlyph table={selectedTable} /><span>{selectedTable.capacity} {t.seats} · {time}</span></div><p className="table-detail">{selectedTable.available ? localize(selectedTable.detail, language) : t.noAvailable}</p><div className="context-tags">{selectedTable.available && selectedTable.tags.slice(0, 3).map((tag) => <span key={tag}>{localizeTag(tag, language)}</span>)}</div><Button className="see-table-button" disabled={!selectedTable.available} onClick={seeSelectedTable}>{t.see}<Eye /></Button></aside>
-          <section className="spatial-preview" aria-label={t.previewHint}><SceneImage src={restaurant.image} scene={selectedTable.scene} className="preview-scene" label={`${restaurant.name} ${selectedTable.id}`} /><div className="preview-wash" /><button className="preview-back" type="button" onClick={() => setExperienceView('plan')}><ArrowLeft />{t.back}</button><div className="preview-place-label"><span>{restaurant.name} · {selectedTable.id}</span><strong>{selectedTable.available ? selectedTable.tags.map((tag) => localizeTag(tag, language)).join(' · ') : t.noAvailable}</strong></div><Button className="reserve-on-table" disabled={!selectedTable.available} onClick={() => setReservationOpen(true)}><small>{selectedTable.id} · {time} · {guests} {t.seats}</small><span>{t.reserve}</span></Button><span className="preview-orientation"><Eye />{t.previewHint}</span></section>
+          <section className="spatial-preview" aria-label={t.previewHint}>
+            {experienceView === 'preview' && <PreviewScene key={restaurant.id} restaurantId={restaurant.id} fallback={restaurant.image} scene={selectedTable.scene} label={`${restaurant.name} · ${t.interiorConcept}`} />}
+            <div className="preview-wash" />
+            <button className="preview-back" type="button" onClick={() => setExperienceView('plan')}><ArrowLeft />{t.back}</button>
+            <span className="preview-image-note"><Eye />{t.interiorConcept}</span>
+            <div className="preview-place-label"><span>{restaurant.name} · {selectedTable.id}</span><strong>{selectedTable.available ? selectedTable.tags.map((tag) => localizeTag(tag, language)).join(' · ') : t.noAvailable}</strong></div>
+            <Button className="reserve-on-table" disabled={!selectedTable.available} onClick={() => setReservationOpen(true)}><small>{selectedTable.id} · {time} · {guests} {t.seats}</small><span>{t.reserve}<ArrowRight /></span></Button>
+            <span className="preview-orientation">{t.interiorDisclaimer}</span>
+          </section>
         </div>
         <div className="restaurant-gallery"><div className="gallery-copy"><span className="overline">{restaurant.name} · 04</span><h3>{t.gallery}</h3><p>{t.galleryIntro}</p></div>{[0, 1, 2, 3].map((scene) => <SceneImage key={scene} src={restaurant.image} scene={scene} label={`${restaurant.name} · ${t.gallery}`} />)}</div>
       </section>
