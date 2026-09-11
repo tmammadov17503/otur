@@ -9,6 +9,7 @@ OTUR is a calm, visual restaurant reservation prototype for Baku. Guests can dis
 ## What is included
 
 - Azerbaijani, English, and Russian interface copy
+- An interactive three-step hero journey from restaurant, to floor plan, to the chosen table
 - Search and atmosphere filters for Baku restaurants
 - Interactive floor plans with table capacity and availability
 - Table-level spatial previews with restaurant-specific cinematic motion and a lightweight reservation flow
@@ -91,6 +92,10 @@ Final dining-vignette prompt:
 Three reference-guided interiors were generated with built-in imagegen. The final WebP assets are `public/restaurants/seki-interior.webp` (1537 × 1023), `hayat-interior.webp` and `xazri-interior.webp` (both 1536 × 1024), encoded at quality 94 without resizing. Compared with the old 836 × 470 contact-sheet quadrants, they provide about four times the image pixels. These are shared concept interiors per restaurant, not exact views from individual tables. Existing four-angle galleries remain available. The preview loads only when opened, falls back to the original sheet on image failure, and respects reduced motion.
 
 Each interior also has a six-second, silent Higgsfield motion study: `seki-motion.mp4`, `hayat-motion.mp4`, and `xazri-motion.mp4`. The web encodes are 1280 pixels wide, H.264, 24 fps, fast-start enabled, and about 2.2 MB combined. They are requested only after a guest opens a table preview, crossfade over the full-resolution WebP poster, include a localized play/pause control, and stay disabled when reduced motion, Save-Data, or a 2G connection is detected.
+
+### Interactive hero journey
+
+Two additional Higgsfield films turn OTUR's promise into an interactive product story: `public/otur-room-motion.mp4` reveals a six-table physical floor-plan model, and `public/otur-table-motion.mp4` moves to a Caspian-side table view. They are paired with lightweight WebP posters and together add about 1.05 MB of video. Motion loads only after a visitor selects the relevant step, remains independently pausable, and falls back to the poster for reduced-motion, Save-Data, 2G, or media-error conditions.
 
 The requested resolution in the prompts below was higher than the tool's delivered resolution; the dimensions above describe the actual assets.
 

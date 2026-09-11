@@ -13,6 +13,7 @@ import { DepthSurface } from '@/components/otur/depth-surface';
 import { DiningAccent } from '@/components/otur/dining-accent';
 import { DiningScatter } from '@/components/otur/dining-scatter';
 import { FloorPlan } from '@/components/otur/floor-plan';
+import { HeroJourney } from '@/components/otur/hero-journey';
 import { PartnerDialog } from '@/components/otur/partner-dialog';
 import { PreviewScene } from '@/components/otur/preview-scene';
 import { TableGlyph } from '@/components/otur/table-glyph';
@@ -178,7 +179,7 @@ export default function Home() {
       <section className="hero" aria-labelledby="hero-title">
         <div className="dining-accent" aria-hidden="true"><Image src={assetUrl('/dining-cutlery.png', import.meta.env.BASE_URL)} alt="" width={1254} height={1254} sizes="(max-width: 760px) 220px, 400px" /></div>
         <div className="hero-copy"><span className="overline">{t.overline}</span><h1 id="hero-title">{t.headline}</h1><p>{t.subhead}</p><p className="brand-promise"><CircleDot />{t.promise}</p></div>
-        <DepthSurface><div className="hero-model" aria-label={t.promise}><Image src={assetUrl('/og.webp', import.meta.env.BASE_URL)} alt={t.promise} fill priority sizes="(max-width: 760px) 100vw, 55vw" /><div className="hero-model-wash" /><div className="hero-sequence"><span className="active">01 · {t.heroStep1}</span><span>02 · {t.heroStep2}</span><span>03 · {t.heroStep3}</span></div><div className="hero-table-marker"><i /><strong>08</strong><small>{t.selected}</small></div></div></DepthSurface>
+        <DepthSurface><HeroJourney steps={[t.heroStep1, t.heroStep2, t.heroStep3]} notes={[t.heroStageRestaurant, t.heroStagePlan, t.heroStageTable]} imageLabel={t.promise} selectedLabel={t.selected} tableCountLabel={`6 ${t.tables}`} pauseMotion={t.pauseMotion} playMotion={t.playMotion} /></DepthSurface>
       </section>
 
       <section className="search-rail" aria-label={t.find}>
