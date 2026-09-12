@@ -1,7 +1,7 @@
 import { DoorOpen, Minus, Plus } from 'lucide-react';
 
 import { TableGlyph } from '@/components/otur/table-glyph';
-import type { Language, Restaurant, RestaurantTable } from '@/lib/otur-data';
+import { localizeTag, type Language, type Restaurant, type RestaurantTable } from '@/lib/otur-data';
 
 type AvailableTable = RestaurantTable & { available: boolean };
 
@@ -58,7 +58,7 @@ function PlanArchitecture({ restaurant, labels }: Pick<FloorPlanProps, 'restaura
   );
 }
 
-export function FloorPlan({ restaurant, tables, selectedId, labels, scale, onScale, onSelect }: FloorPlanProps) {
+export function FloorPlan({ restaurant, tables, selectedId, language, labels, scale, onScale, onSelect }: FloorPlanProps) {
   return (
     <div className="plan-viewport" data-restaurant={restaurant.id}>
       <div className="zoom-controls" aria-label={labels.choose}>
@@ -66,22 +66,27 @@ export function FloorPlan({ restaurant, tables, selectedId, labels, scale, onSca
         <span>{Math.round(scale * 100)}%</span>
         <button type="button" onClick={() => onScale(Math.min(1.24, scale + .08))} aria-label={`${labels.choose} +`}><Plus /></button>
       </div>
-      <div className={`floorplan-canvas plan-${restaurant.planVariant}`} style={{ transform: `scale(${scale})` }}>
-        <PlanArchitecture restaurant={restaurant} labels={labels} />
-        {tables.map((table) => (
-          <button
-            key={table.id}
-            type="button"
-            className={`floor-table ${table.available ? 'available' : 'reserved'} ${selectedId === table.id ? 'selected' : ''}`}
-            style={{ left: `${table.left}%`, top: `${table.top}%` }}
-            disabled={!table.available}
-            onClick={() => onSelect(table.id)}
-            aria-label={`${table.id} · ${table.capacity}`}
-          >
-            <TableGlyph table={table} />
-            <span>{table.id.replace(/^[A-Z]/, '')}</span>
-          </button>
-        ))}
+      <div className="floorplan-world">
+        <div className={`floorplan-canvas plan-${restaurant.planVariant}`} style={{ transform: `scale(${scale})` }}>
+          <PlanArchitecture restaurant={restaurant} labels={labels} />
+          {tables.map((table) => (
+            <button
+              key={table.id}
+              type="button"
+              className={`floor-table ${table.available ? 'available' : 'reserved'} ${selectedId === table.id ? 'selected' : ''}`}
+              style={{ left: `${table.left}%`, top: `${table.top}%` }}
+              data-shape={table.shape}
+              data-capacity={table.capacity}
+              disabled={!table.available}
+              onClick={() => onSelect(table.id)}
+              aria-label={`${table.id} · ${table.capacity} ${labels.seats} · ${table.tags.map((tag) => localizeTag(tag, language)).join(', ')} · ${selectedId === table.id ? labels.selected : table.available ? labels.available : labels.reserved}`}
+            >
+              <TableGlyph table={table} />
+              <span className="table-number">{table.id.replace(/^[A-Z]/, '')}</span>
+              {table.available && <span className="table-peek">{table.capacity} {labels.seats}<small>{localizeTag(table.tags[0], language)}</small></span>}
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );

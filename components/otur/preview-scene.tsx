@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, type PointerEvent } from 'react';
+import { useEffect, useRef, useState, type CSSProperties, type PointerEvent } from 'react';
 import Image from 'next/image';
 import { Pause, Play } from 'lucide-react';
 import { assetUrl } from '@/lib/assets';
@@ -12,6 +12,7 @@ type PreviewSceneProps = {
   scene: number;
   pauseMotion: string;
   playMotion: string;
+  yaw?: number;
 };
 
 type DataAwareNavigator = Navigator & {
@@ -19,7 +20,7 @@ type DataAwareNavigator = Navigator & {
 };
 
 /** Full-frame concept interior with an on-demand, data-aware cinematic layer. */
-export function PreviewScene({ restaurantId, label, fallback, scene, pauseMotion, playMotion }: PreviewSceneProps) {
+export function PreviewScene({ restaurantId, label, fallback, scene, pauseMotion, playMotion, yaw }: PreviewSceneProps) {
   const surface = useRef<HTMLDivElement>(null);
   const video = useRef<HTMLVideoElement>(null);
   const [failed, setFailed] = useState(false);
@@ -41,7 +42,7 @@ export function PreviewScene({ restaurantId, label, fallback, scene, pauseMotion
   }, []);
 
   function move(event: PointerEvent<HTMLDivElement>) {
-    if (event.pointerType !== 'mouse' || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if (yaw !== undefined || event.pointerType !== 'mouse' || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     const node = surface.current;
     if (!node) return;
     const box = node.getBoundingClientRect();
@@ -68,7 +69,14 @@ export function PreviewScene({ restaurantId, label, fallback, scene, pauseMotion
   }
 
   return (
-    <div ref={surface} className="preview-photo" onPointerMove={move} onPointerLeave={reset} onPointerCancel={reset}>
+    <div
+      ref={surface}
+      className={`preview-photo ${yaw === undefined ? '' : 'is-seat-view'}`}
+      style={yaw === undefined ? undefined : { '--seat-shift': `${Math.max(-14, Math.min(14, yaw * .08))}%` } as CSSProperties}
+      onPointerMove={move}
+      onPointerLeave={reset}
+      onPointerCancel={reset}
+    >
       {failed ? (
         <div className={`scene-image scene-${scene}`}
           style={{ backgroundImage: `url(${assetUrl(fallback, import.meta.env.BASE_URL)})` }}><span className="sr-only">{label}</span></div>

@@ -11,8 +11,9 @@ OTUR is a calm, visual restaurant reservation prototype for Baku. Guests can dis
 - Azerbaijani, English, and Russian interface copy
 - An interactive three-step hero journey from restaurant, to floor plan, to the chosen table
 - Search and atmosphere filters for Baku restaurants
-- Interactive floor plans with table capacity and availability
-- Table-level spatial previews with restaurant-specific cinematic motion and a lightweight reservation flow
+- Animated top-down floor plans with table capacity, availability, shape, and dining-category details
+- A room-to-table fly-in with individually selectable chairs and a chosen-seat reservation summary
+- Draggable seated views with turn controls, a live view angle, restaurant-specific cinematic motion, and a lightweight reservation flow
 - Responsive layouts for desktop and mobile
 - Private, device-local restaurant favorites (no account required)
 - Table suggestions by atmosphere, party size, and simulated availability
@@ -65,6 +66,8 @@ Every push to `main` runs the GitHub Pages workflow. It installs from the lockfi
 ## Prototype status
 
 Restaurant data, availability, and reservations are simulated in the browser. A production release would connect these flows to restaurant inventory, authentication, notifications, and a secure booking API.
+
+The seated perspective is an interactive concept visualization built from each restaurant's generated interior imagery. It communicates the intended product interaction but is not a measured 360° panorama or a verified real-world sightline.
 
 Favorites store restaurant IDs only on the current device. Contact details are never included in storage, shared links, or calendar files. A shared link restores a proposed restaurant, table, date, time, and guest count; it does not hold inventory. Calendar entries are tentative two-hour plans, not confirmed reservations.
 

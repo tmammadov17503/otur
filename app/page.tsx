@@ -15,8 +15,9 @@ import { DiningScatter } from '@/components/otur/dining-scatter';
 import { FloorPlan } from '@/components/otur/floor-plan';
 import { HeroJourney } from '@/components/otur/hero-journey';
 import { PartnerDialog } from '@/components/otur/partner-dialog';
-import { PreviewScene } from '@/components/otur/preview-scene';
+import { SeatView } from '@/components/otur/seat-view';
 import { TableGlyph } from '@/components/otur/table-glyph';
+import { TableFocus } from '@/components/otur/table-focus';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,7 +27,7 @@ import { diningCopy } from '@/lib/dining-copy';
 import { FAVORITES_KEY, getBakuDate, parseFavorites, parseSharedPlan, recommendTable, toggleFavorite } from '@/lib/dining-plans';
 import { copy, localize, localizeTag, quickFilters, restaurants, times, type Language } from '@/lib/otur-data';
 
-type ExperienceView = 'plan' | 'preview';
+type ExperienceView = 'plan' | 'table' | 'seat';
 
 const filterTagMap: Record<string, string | null> = {
   Tonight: null, Terrace: 'terrace', 'Sea view': 'sea', 'Date night': 'date',
@@ -60,6 +61,7 @@ export default function Home() {
   const [activeFilter, setActiveFilter] = useState('Tonight');
   const [restaurantId, setRestaurantId] = useState<'seki' | 'hayat' | 'xazri'>('seki');
   const [selectedTableId, setSelectedTableId] = useState('S03');
+  const [selectedSeat, setSelectedSeat] = useState(1);
   const [experienceView, setExperienceView] = useState<ExperienceView>('plan');
   const [transitioning, setTransitioning] = useState(false);
   const [planScale, setPlanScale] = useState(1);
@@ -82,6 +84,7 @@ export default function Home() {
     ...table, available: isTableAvailableForSlot(table, slot),
   })), [restaurant, slot]);
   const selectedTable = availability.find((table) => table.id === selectedTableId && table.available) ?? availability.find((table) => table.available) ?? availability[0];
+  const activeSeat = Math.min(selectedSeat, selectedTable.capacity);
   const availableCount = availability.filter((table) => table.available).length;
 
   const localizedSearchRecords = useMemo(() => restaurants.map((item) => ({
@@ -125,6 +128,7 @@ export default function Home() {
     setSuggestionStatus(match ? 'matched' : 'empty');
     if (!match) return;
     setSelectedTableId(match.id);
+    setSelectedSeat(1);
     setExperienceView('plan');
     const viewport = document.querySelector<HTMLElement>('.plan-viewport');
     const canvas = document.querySelector<HTMLElement>('.floorplan-canvas');
@@ -147,6 +151,7 @@ export default function Home() {
     const nextSlot = { restaurantId: next.id, date, time, guests };
     setRestaurantId(nextId);
     setSelectedTableId(getFirstAvailableTableId(next.tables, nextSlot) ?? next.tables[0].id);
+    setSelectedSeat(1);
     setExperienceView('plan');
     setPlanScale(1);
     window.setTimeout(() => document.getElementById('restaurant')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 40);
@@ -155,7 +160,14 @@ export default function Home() {
   function seeSelectedTable() {
     if (!selectedTable.available) return;
     setTransitioning(true);
-    window.setTimeout(() => { setExperienceView('preview'); setTransitioning(false); }, 460);
+    document.querySelector<HTMLElement>('.experience-stage')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    window.setTimeout(() => { setExperienceView('table'); setTransitioning(false); }, 460);
+  }
+
+  function viewFromSeat() {
+    setTransitioning(true);
+    document.querySelector<HTMLElement>('.experience-stage')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    window.setTimeout(() => { setExperienceView('seat'); setTransitioning(false); }, 380);
   }
 
   function filterLabel(filter: string) {
@@ -209,22 +221,33 @@ export default function Home() {
       <section id="restaurant" className="restaurant-experience" aria-labelledby="restaurant-title">
         <DiningScatter variant="experience" />
         <header className="restaurant-header"><div><button type="button" className="change-restaurant" onClick={() => document.getElementById('discover')?.scrollIntoView({ behavior: 'smooth' })}><ArrowLeft />{t.changeRestaurant}</button><span className="overline">{localize(restaurant.atmosphere, language)}</span><h2 id="restaurant-title">{restaurant.name}</h2><p>{localize(restaurant.description, language)}</p></div><dl className="restaurant-facts"><div><dt>{t.cuisine}</dt><dd>{localize(restaurant.cuisine, language)}</dd></div><div><dt>{t.price}</dt><dd>{restaurant.price}</dd></div><div><dt>{t.hours}</dt><dd>{restaurant.hours}</dd></div><div><dt>{t.rating}</dt><dd><Star />{restaurant.rating}</dd></div></dl></header>
-        <div className={`experience-stage ${experienceView === 'preview' ? 'show-preview' : ''} ${transitioning ? 'zooming' : ''}`}>
+        <div className={`experience-stage ${experienceView !== 'plan' ? 'show-preview' : ''} ${experienceView === 'seat' ? 'viewing-seat' : ''} ${transitioning ? 'zooming' : ''}`}>
+          <ol className="experience-progress" aria-label={t.choose}>
+            <li className={experienceView === 'plan' ? 'active' : 'complete'}><span>01</span>{t.roomOverview}</li>
+            <li className={experienceView === 'table' ? 'active' : experienceView === 'seat' ? 'complete' : ''}><span>02</span>{t.tableOverview}</li>
+            <li className={experienceView === 'seat' ? 'active' : ''}><span>03</span>{t.guestView}</li>
+          </ol>
           <section className="plan-side" aria-label={t.choose}>
             <div className="plan-titlebar"><div><span>{restaurant.name} · {t.floorEvening}</span><h3>{t.choose}</h3></div><div className="availability-key"><span><i className="key-available" />{t.available}</span><span><i className="key-reserved" />{t.reserved}</span><span><i className="key-selected" />{t.selected}</span><strong>{availableCount} {t.tables}</strong></div></div>
             <div className="seat-finder"><label htmlFor="seat-preference"><Sparkles />{t.seatPreference}</label><select id="seat-preference" value={seatPreference} onChange={(event) => setSeatPreference(event.target.value)}><option value="any">{t.anySeat}</option>{['window', 'quiet', 'terrace', 'sea', 'private'].map((tag) => <option key={tag} value={tag}>{localizeTag(tag, language)}</option>)}</select><Button variant="outline" type="button" onClick={suggestSeat}>{t.suggestSeat}<ArrowRight /></Button></div>
             {suggestionStatus && suggestionKey === currentSuggestionKey && <output className="seat-feedback">{suggestionStatus === 'matched' ? `${selectedTable.id} · ${t.matchNote}` : t.noMatch}</output>}
-            <FloorPlan restaurant={restaurant} tables={availability} selectedId={selectedTable.available ? selectedTable.id : ''} language={language} labels={labels} scale={planScale} onScale={setPlanScale} onSelect={(id) => { setSelectedTableId(id); setSuggestionStatus(null); setExperienceView('plan'); }} /><p className="plan-help"><CircleDot />{t.planHelp}</p>
+            <FloorPlan restaurant={restaurant} tables={availability} selectedId={selectedTable.available ? selectedTable.id : ''} language={language} labels={labels} scale={planScale} onScale={setPlanScale} onSelect={(id) => { setSelectedTableId(id); setSelectedSeat(1); setSuggestionStatus(null); setExperienceView('plan'); }} /><p className="plan-help"><CircleDot />{t.planHelp}</p>
           </section>
-          <aside className="table-context"><span className="context-kicker">{t.whyThis}</span><div className="context-title"><h3>{selectedTable.available ? selectedTable.id : '—'}</h3>{selectedTable.available && <Badge className="status-available"><Check />{t.available}</Badge>}</div><div className="context-glyph"><TableGlyph table={selectedTable} /><span>{selectedTable.capacity} {t.seats} · {time}</span></div><p className="table-detail">{selectedTable.available ? localize(selectedTable.detail, language) : t.noAvailable}</p><div className="context-tags">{selectedTable.available && selectedTable.tags.slice(0, 3).map((tag) => <span key={tag}>{localizeTag(tag, language)}</span>)}</div><Button className="see-table-button" disabled={!selectedTable.available} onClick={seeSelectedTable}>{t.see}<Eye /></Button></aside>
-          <section className="spatial-preview" aria-label={t.previewHint}>
-            {experienceView === 'preview' && <PreviewScene key={restaurant.id} restaurantId={restaurant.id} fallback={restaurant.image} scene={selectedTable.scene} label={`${restaurant.name} · ${t.interiorConcept}`} pauseMotion={t.pauseMotion} playMotion={t.playMotion} />}
-            <div className="preview-wash" />
-            <button className="preview-back" type="button" onClick={() => setExperienceView('plan')}><ArrowLeft />{t.back}</button>
-            <span className="preview-image-note"><Eye />{t.interiorConcept}</span>
-            <div className="preview-place-label"><span>{restaurant.name} · {selectedTable.id}</span><strong>{selectedTable.available ? selectedTable.tags.map((tag) => localizeTag(tag, language)).join(' · ') : t.noAvailable}</strong></div>
-            <Button className="reserve-on-table" disabled={!selectedTable.available} onClick={() => setReservationOpen(true)}><small>{selectedTable.id} · {time} · {guests} {t.seats}</small><span>{t.reserve}<ArrowRight /></span></Button>
-            <span className="preview-orientation">{t.interiorDisclaimer}</span>
+          <aside className="table-context">
+            <span className="context-kicker">{t.whyThis}</span>
+            <div className="context-title"><h3>{selectedTable.available ? selectedTable.id : '—'}</h3>{selectedTable.available && <Badge className="status-available"><Check />{t.available}</Badge>}</div>
+            <div className="context-glyph"><TableGlyph table={selectedTable} /><span className="table-capacity">{selectedTable.capacity} {t.seats} · {time}</span></div>
+            <dl className="context-stats"><div><dt>{t.shapeLabel}</dt><dd>{labels[selectedTable.shape === 'round' ? 'roundTable' : selectedTable.shape === 'square' ? 'squareTable' : 'longTable']}</dd></div><div><dt>{t.tableCategories}</dt><dd>{selectedTable.tags.length}</dd></div></dl>
+            <p className="table-detail">{selectedTable.available ? localize(selectedTable.detail, language) : t.noAvailable}</p>
+            <div className="context-tags">{selectedTable.available && selectedTable.tags.slice(0, 3).map((tag) => <span key={tag}>{localizeTag(tag, language)}</span>)}</div>
+            <Button className="see-table-button" disabled={!selectedTable.available} onClick={seeSelectedTable}>{t.see}<Eye /></Button>
+          </aside>
+          <section className={`spatial-preview ${experienceView === 'seat' ? 'seat-view' : 'table-view'}`} aria-label={t.previewHint}>
+            {experienceView === 'table' && <>
+              <button className="table-focus-back" type="button" onClick={() => setExperienceView('plan')}><ArrowLeft />{t.back}</button>
+              <TableFocus restaurant={restaurant} table={selectedTable} language={language} labels={labels} selectedSeat={activeSeat} onSeatSelect={setSelectedSeat} onViewFromSeat={viewFromSeat} />
+            </>}
+            {experienceView === 'seat' && <SeatView restaurant={restaurant} table={selectedTable} selectedSeat={activeSeat} language={language} labels={labels} guests={guests} time={time} onBack={() => setExperienceView('table')} onReserve={() => setReservationOpen(true)} />}
           </section>
         </div>
         <div className="restaurant-gallery"><div className="gallery-copy"><span className="overline">{restaurant.name} · 04</span><h3>{t.gallery}</h3><p>{t.galleryIntro}</p></div>{[0, 1, 2, 3].map((scene) => <SceneImage key={scene} src={restaurant.image} scene={scene} label={`${restaurant.name} · ${t.gallery}`} />)}</div>
@@ -238,7 +261,7 @@ export default function Home() {
       </section>
 
       <footer className="site-footer"><OturLogo /><p>{t.promise}<br />Baku, Azerbaijan</p><span>{t.prototype}</span></footer>
-      <BookingDialog open={reservationOpen} onOpenChange={setReservationOpen} restaurant={restaurant} table={selectedTable} date={date} time={time} guests={guests} language={language} labels={labels} />
+      <BookingDialog open={reservationOpen} onOpenChange={setReservationOpen} restaurant={restaurant} table={selectedTable} date={date} time={time} guests={guests} seat={activeSeat} language={language} labels={labels} />
       <PartnerDialog open={partnerOpen} onOpenChange={setPartnerOpen} labels={labels} />
     </main>
   );

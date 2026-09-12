@@ -1,6 +1,7 @@
 """Exercise OTUR's private-by-default planning features on desktop and touch browsers."""
 
 import json
+import re
 import sys
 from datetime import date, timedelta
 from pathlib import Path
@@ -54,9 +55,22 @@ def audit(browser, url, width, mobile):
     page.locator(".seat-finder button").click()
     expect(page.locator(".seat-feedback")).to_contain_text("A good fit")
     selected = page.locator(".context-title h3").inner_text()
-    expect(page.locator(".floor-table.selected")).to_have_attribute("aria-label", f"{selected} · 2")
+    expect(page.locator(".floor-table.selected")).to_have_attribute("aria-label", re.compile(rf"{re.escape(selected)}.*2"))
+    expect(page.locator(".table-capacity")).to_contain_text("2 guests")
+    assert page.locator(".context-tags span").count() >= 1
     page.locator(".see-table-button").click()
+    expect(page.locator(".table-focus")).to_be_visible()
+    expect(page.locator(".seat-choice")).to_have_count(2)
+    page.locator(".seat-choice").nth(1).click()
+    expect(page.locator(".seat-choice").nth(1)).to_have_attribute("aria-pressed", "true")
+    expect(page.locator(".seat-focus-summary")).to_contain_text("Seat 2")
+    page.locator(".view-from-seat").click()
+    expect(page.locator(".spatial-preview.seat-view")).to_be_visible()
+    yaw_before = page.locator(".seat-look-stage").get_attribute("data-yaw")
+    page.locator(".turn-view-right").click()
+    expect(page.locator(".seat-look-stage")).not_to_have_attribute("data-yaw", yaw_before)
     page.locator(".reserve-on-table").click()
+    expect(page.locator(".sheet-summary")).to_contain_text("Seat 2")
     page.locator("#guest-name").fill("Test Guest")
     page.locator("#guest-phone").fill("+994 50 123 45 67")
     page.locator(".confirm-button").click()

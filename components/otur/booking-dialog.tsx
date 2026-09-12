@@ -21,11 +21,12 @@ type BookingDialogProps = {
   date: string;
   time: string;
   guests: number;
+  seat: number;
   language: Language;
   labels: Record<string, string>;
 };
 
-export function BookingDialog({ open, onOpenChange, restaurant, table, date, time, guests, language, labels }: BookingDialogProps) {
+export function BookingDialog({ open, onOpenChange, restaurant, table, date, time, guests, seat, language, labels }: BookingDialogProps) {
   const [confirmed, setConfirmed] = useState(false);
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('+994 ');
@@ -91,7 +92,7 @@ export function BookingDialog({ open, onOpenChange, restaurant, table, date, tim
           <DialogHeader className="confirmation-header">
             <span className="sheet-kicker">{labels.planSaved} · {table.id}</span>
             <DialogTitle>{labels.planReady}</DialogTitle>
-            <DialogDescription>{restaurant.name} · {date} · {time} · {guests} {labels.seats}</DialogDescription>
+            <DialogDescription>{restaurant.name} · {table.id} · {labels.seatLabel} {seat} · {date} · {time} · {guests} {labels.seats}</DialogDescription>
           </DialogHeader>
           <p className="prototype-note">{labels.demoPlan}</p>
           <div className="confirmation-tags">
@@ -126,7 +127,7 @@ export function BookingDialog({ open, onOpenChange, restaurant, table, date, tim
         </DialogHeader>
         <div className="sheet-summary">
           <TableGlyph table={table} small />
-          <span><small>{restaurant.name} · {table.id}</small><strong>{date} · {time} · {guests} {labels.seats}</strong></span>
+          <span><small>{restaurant.name} · {table.id} · {labels.seatLabel} {seat}</small><strong>{date} · {time} · {guests} {labels.seats}</strong></span>
           <Check />
         </div>
         <p className="prototype-note">{labels.demoPlan}</p>
