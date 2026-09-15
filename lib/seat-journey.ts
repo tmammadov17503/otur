@@ -5,17 +5,12 @@ export type SeatPosition = {
   left: number;
   top: number;
   angle: number;
-  facingAngle: number;
 };
 
 type SeatGeometry = {
   capacity: number;
   shape: TableShape;
 };
-
-export function wrapViewAngle(current: number, delta: number) {
-  return ((current + delta + 180) % 360 + 360) % 360 - 180;
-}
 
 export function getSeatPositions({ capacity, shape }: SeatGeometry): SeatPosition[] {
   const radius = shape === 'long'
@@ -32,7 +27,6 @@ export function getSeatPositions({ capacity, shape }: SeatGeometry): SeatPositio
       left: Math.round((50 + Math.cos(radians) * radius.x) * 10) / 10,
       top: Math.round((50 + Math.sin(radians) * radius.y) * 10) / 10,
       angle,
-      facingAngle: wrapViewAngle(angle, 180),
     };
   });
 }

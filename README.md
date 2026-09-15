@@ -2,18 +2,18 @@
 
 [![Deploy OTUR to GitHub Pages](https://github.com/tmammadov17503/otur/actions/workflows/pages.yml/badge.svg)](https://github.com/tmammadov17503/otur/actions/workflows/pages.yml)
 
-OTUR is a calm, visual restaurant reservation prototype for Baku. Guests can discover a restaurant, inspect its floor plan, choose a specific available table, preview the view from that table, and reserve without creating an account.
+OTUR is a calm, visual restaurant reservation prototype for Baku. Guests can discover a restaurant, inspect its floor plan, choose a specific available table and exact seat, and reserve without creating an account.
 
 **Public demo:** [tmammadov17503.github.io/otur](https://tmammadov17503.github.io/otur/)
 
 ## What is included
 
 - Azerbaijani, English, and Russian interface copy
-- An interactive three-step hero journey from restaurant, to floor plan, to the chosen table
+- An interactive hero journey from restaurant discovery to the floor plan and chosen table
 - Search and atmosphere filters for Baku restaurants
 - Animated top-down floor plans with table capacity, availability, shape, and dining-category details
 - A room-to-table fly-in with individually selectable chairs and a chosen-seat reservation summary
-- Draggable seated views with turn controls, a live view angle, restaurant-specific cinematic motion, and a lightweight reservation flow
+- A focused two-stage reservation flow: choose the room and table, then choose the exact seat and reserve
 - Responsive layouts for desktop and mobile
 - Private, device-local restaurant favorites (no account required)
 - Table suggestions by atmosphere, party size, and simulated availability
@@ -23,6 +23,8 @@ OTUR is a calm, visual restaurant reservation prototype for Baku. Guests can dis
 - A sparse lower-page pattern of small separate forks, knives, cups, leaves and glasses, reusing Lucide icons with light dimensional shadows
 - A restaurant-partner floor-plan editor concept
 - Automated tests, linting, production builds, and GitHub Pages deployment
+
+Restaurant-specific 3D seated views are intentionally deferred until partner venues can provide accurate floor plans, photography, and room data.
 
 ## Run locally
 

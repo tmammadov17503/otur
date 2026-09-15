@@ -15,7 +15,6 @@ import { DiningScatter } from '@/components/otur/dining-scatter';
 import { FloorPlan } from '@/components/otur/floor-plan';
 import { HeroJourney } from '@/components/otur/hero-journey';
 import { PartnerDialog } from '@/components/otur/partner-dialog';
-import { SeatView } from '@/components/otur/seat-view';
 import { TableGlyph } from '@/components/otur/table-glyph';
 import { TableFocus } from '@/components/otur/table-focus';
 import { Badge } from '@/components/ui/badge';
@@ -27,7 +26,7 @@ import { diningCopy } from '@/lib/dining-copy';
 import { FAVORITES_KEY, getBakuDate, parseFavorites, parseSharedPlan, recommendTable, toggleFavorite } from '@/lib/dining-plans';
 import { copy, localize, localizeTag, quickFilters, restaurants, times, type Language } from '@/lib/otur-data';
 
-type ExperienceView = 'plan' | 'table' | 'seat';
+type ExperienceView = 'plan' | 'table';
 
 const filterTagMap: Record<string, string | null> = {
   Tonight: null, Terrace: 'terrace', 'Sea view': 'sea', 'Date night': 'date',
@@ -164,10 +163,14 @@ export default function Home() {
     window.setTimeout(() => { setExperienceView('table'); setTransitioning(false); }, 460);
   }
 
-  function viewFromSeat() {
-    setTransitioning(true);
-    document.querySelector<HTMLElement>('.experience-stage')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    window.setTimeout(() => { setExperienceView('seat'); setTransitioning(false); }, 380);
+  function navigateExperience(nextView: ExperienceView) {
+    if (nextView === experienceView) return;
+    if (nextView === 'plan') {
+      setTransitioning(false);
+      setExperienceView('plan');
+      return;
+    }
+    seeSelectedTable();
   }
 
   function filterLabel(filter: string) {
@@ -221,11 +224,10 @@ export default function Home() {
       <section id="restaurant" className="restaurant-experience" aria-labelledby="restaurant-title">
         <DiningScatter variant="experience" />
         <header className="restaurant-header"><div><button type="button" className="change-restaurant" onClick={() => document.getElementById('discover')?.scrollIntoView({ behavior: 'smooth' })}><ArrowLeft />{t.changeRestaurant}</button><span className="overline">{localize(restaurant.atmosphere, language)}</span><h2 id="restaurant-title">{restaurant.name}</h2><p>{localize(restaurant.description, language)}</p></div><dl className="restaurant-facts"><div><dt>{t.cuisine}</dt><dd>{localize(restaurant.cuisine, language)}</dd></div><div><dt>{t.price}</dt><dd>{restaurant.price}</dd></div><div><dt>{t.hours}</dt><dd>{restaurant.hours}</dd></div><div><dt>{t.rating}</dt><dd><Star />{restaurant.rating}</dd></div></dl></header>
-        <div className={`experience-stage ${experienceView !== 'plan' ? 'show-preview' : ''} ${experienceView === 'seat' ? 'viewing-seat' : ''} ${transitioning ? 'zooming' : ''}`}>
+        <div className={`experience-stage ${experienceView !== 'plan' ? 'show-preview' : ''} ${transitioning ? 'zooming' : ''}`}>
           <ol className="experience-progress" aria-label={t.choose}>
-            <li className={experienceView === 'plan' ? 'active' : 'complete'}><span>01</span>{t.roomOverview}</li>
-            <li className={experienceView === 'table' ? 'active' : experienceView === 'seat' ? 'complete' : ''}><span>02</span>{t.tableOverview}</li>
-            <li className={experienceView === 'seat' ? 'active' : ''}><span>03</span>{t.guestView}</li>
+            <li className={experienceView === 'plan' ? 'active' : 'complete'}><button type="button" aria-current={experienceView === 'plan' ? 'step' : undefined} aria-label={`${t.openStage} ${t.roomOverview}`} onClick={() => navigateExperience('plan')}><span>01</span>{t.roomOverview}</button></li>
+            <li className={experienceView === 'table' ? 'active' : ''}><button type="button" aria-current={experienceView === 'table' ? 'step' : undefined} aria-label={`${t.openStage} ${t.tableAndSeat}`} onClick={() => navigateExperience('table')}><span>02</span>{t.tableAndSeat}</button></li>
           </ol>
           <section className="plan-side" aria-label={t.choose}>
             <div className="plan-titlebar"><div><span>{restaurant.name} · {t.floorEvening}</span><h3>{t.choose}</h3></div><div className="availability-key"><span><i className="key-available" />{t.available}</span><span><i className="key-reserved" />{t.reserved}</span><span><i className="key-selected" />{t.selected}</span><strong>{availableCount} {t.tables}</strong></div></div>
@@ -242,12 +244,11 @@ export default function Home() {
             <div className="context-tags">{selectedTable.available && selectedTable.tags.slice(0, 3).map((tag) => <span key={tag}>{localizeTag(tag, language)}</span>)}</div>
             <Button className="see-table-button" disabled={!selectedTable.available} onClick={seeSelectedTable}>{t.see}<Eye /></Button>
           </aside>
-          <section className={`spatial-preview ${experienceView === 'seat' ? 'seat-view' : 'table-view'}`} aria-label={t.previewHint}>
+          <section className="spatial-preview table-view" aria-label={t.previewHint}>
             {experienceView === 'table' && <>
               <button className="table-focus-back" type="button" onClick={() => setExperienceView('plan')}><ArrowLeft />{t.back}</button>
-              <TableFocus restaurant={restaurant} table={selectedTable} language={language} labels={labels} selectedSeat={activeSeat} onSeatSelect={setSelectedSeat} onViewFromSeat={viewFromSeat} />
+              <TableFocus restaurant={restaurant} table={selectedTable} language={language} labels={labels} selectedSeat={activeSeat} onSeatSelect={setSelectedSeat} onReserve={() => setReservationOpen(true)} />
             </>}
-            {experienceView === 'seat' && <SeatView restaurant={restaurant} table={selectedTable} selectedSeat={activeSeat} language={language} labels={labels} guests={guests} time={time} onBack={() => setExperienceView('table')} onReserve={() => setReservationOpen(true)} />}
           </section>
         </div>
         <div className="restaurant-gallery"><div className="gallery-copy"><span className="overline">{restaurant.name} · 04</span><h3>{t.gallery}</h3><p>{t.galleryIntro}</p></div>{[0, 1, 2, 3].map((scene) => <SceneImage key={scene} src={restaurant.image} scene={scene} label={`${restaurant.name} · ${t.gallery}`} />)}</div>

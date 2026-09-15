@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 // @ts-expect-error Node's type-stripping test runner requires the explicit TS extension.
-import { getSeatPositions, wrapViewAngle } from './seat-journey.ts';
+import { getSeatPositions } from './seat-journey.ts';
 
 void test('seat positions match the table capacity and stay inside the focus stage', () => {
   for (const capacity of [2, 4, 6, 8]) {
@@ -25,10 +25,4 @@ void test('seat geometry does not mutate its input', () => {
   const table = Object.freeze({ capacity: 4, shape: 'square' as const });
   getSeatPositions(table);
   assert.deepEqual(table, { capacity: 4, shape: 'square' });
-});
-
-void test('view rotation wraps cleanly across both panorama edges', () => {
-  assert.equal(wrapViewAngle(170, 30), -160);
-  assert.equal(wrapViewAngle(-170, -30), 160);
-  assert.equal(wrapViewAngle(15, 45), 60);
 });

@@ -1,4 +1,4 @@
-import { ArrowRight, Eye, Users } from 'lucide-react';
+import { ArrowRight, CalendarCheck, Users } from 'lucide-react';
 import type { CSSProperties } from 'react';
 
 import { Button } from '@/components/ui/button';
@@ -12,7 +12,7 @@ type TableFocusProps = {
   labels: Record<string, string>;
   selectedSeat: number;
   onSeatSelect: (seat: number) => void;
-  onViewFromSeat: () => void;
+  onReserve: () => void;
 };
 
 const shapeLabel = {
@@ -21,7 +21,7 @@ const shapeLabel = {
   long: 'longTable',
 } as const;
 
-export function TableFocus({ restaurant, table, language, labels, selectedSeat, onSeatSelect, onViewFromSeat }: TableFocusProps) {
+export function TableFocus({ restaurant, table, language, labels, selectedSeat, onSeatSelect, onReserve }: TableFocusProps) {
   const seats = getSeatPositions(table);
 
   return (
@@ -42,8 +42,8 @@ export function TableFocus({ restaurant, table, language, labels, selectedSeat, 
           <strong>{labels.seatLabel} {selectedSeat}</strong>
           <small>{restaurant.name} · {table.id}</small>
         </div>
-        <Button className="view-from-seat" type="button" onClick={onViewFromSeat}>
-          <Eye />{labels.viewFromSeat}<ArrowRight />
+        <Button className="reserve-selected-seat" type="button" onClick={onReserve}>
+          <CalendarCheck /><span><small>{labels.seatLabel} {selectedSeat}</small>{labels.reserveSeat}</span><ArrowRight />
         </Button>
       </div>
 
@@ -62,7 +62,6 @@ export function TableFocus({ restaurant, table, language, labels, selectedSeat, 
             style={{ left: `${seat.left}%`, top: `${seat.top}%`, '--seat-angle': `${seat.angle + 90}deg` } as CSSProperties}
             aria-label={`${labels.seatLabel} ${seat.id}`}
             aria-pressed={selectedSeat === seat.id}
-            onPointerUp={() => onSeatSelect(seat.id)}
             onClick={() => onSeatSelect(seat.id)}
           >
             <i aria-hidden="true" />
