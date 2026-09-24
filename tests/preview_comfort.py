@@ -34,7 +34,11 @@ def audit(browser, url, width):
         if index == 0:
             page.screenshot(path=f"work/comfort/{browser.browser_type.name}-{width}-preview.png")
             page.locator(".reserve-selected-table").click()
-            page.locator(".demo-account-button").click()
+            page.locator(".account-tabs button").nth(1).click()
+            page.locator("#account-name").fill("Aylin Test")
+            page.locator("#account-phone").fill("50 123 45 67")
+            page.locator("#account-password").fill("calm-table-26")
+            page.locator(".account-form .confirm-button").click()
             expect(page.locator(".reservation-sheet")).to_be_visible()
             page.keyboard.press("Escape")
             expect(page.locator(".reservation-sheet")).to_be_hidden()

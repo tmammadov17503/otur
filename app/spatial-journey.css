@@ -58,7 +58,7 @@
 .show-preview .experience-progress li.complete button span { color: #334536; }
 
 .plan-side { padding-top: 82px; }
-.floorplan-world { height: 100%; min-width: 650px; perspective: 1100px; overflow: hidden; }
+.floorplan-world { height: 100%; min-width: 0; perspective: 1100px; overflow: hidden; }
 .floorplan-world .floorplan-canvas {
   transform-style: preserve-3d;
   box-shadow: inset 0 0 80px rgb(100 81 57 / 4%);
@@ -252,21 +252,18 @@
   .experience-progress li button { min-height: 44px; gap: 6px; padding: 0 9px; font-size: 10px; }
   .experience-progress li button span { width: 20px; height: 20px; font-size: 8px; }
   .plan-side { padding-top: 68px; }
-  .floorplan-world { min-width: 620px; }
+  .floorplan-world { min-width: 0; }
   .floor-table .table-peek { display: none; }
   .context-stats { display: none; }
-  .spatial-preview.table-view { position: fixed; min-height: 100svh; overflow-y: auto; }
-  .table-focus { position: relative; min-height: 100svh; padding: max(132px, calc(env(safe-area-inset-top) + 120px)) 18px max(104px, calc(env(safe-area-inset-bottom) + 88px)); grid-template-columns: 1fr; align-content: start; gap: 18px; }
+  .spatial-preview.table-view { position: fixed; height: 100dvh; min-height: 0; overflow: hidden; }
+  .table-focus { position: absolute; height: 100dvh; min-height: 0; padding: max(104px, calc(env(safe-area-inset-top) + 94px)) 18px max(78px, calc(env(safe-area-inset-bottom) + 68px)); grid-template-columns: 1fr; grid-template-rows: minmax(150px, 1fr) auto; align-content: center; gap: 12px; overflow: hidden; }
   .table-focus-back { position: fixed; top: max(64px, calc(env(safe-area-inset-top) + 54px)); left: 12px; min-height: 42px; padding-inline: 12px; }
-  .table-focus-copy { display: contents; }
-  .focus-kicker { order: 1; margin-top: 8px; }
-  .table-focus-copy h3 { order: 2; margin: 0; font-size: 43px; }
-  .table-focus-copy > p { order: 4; font-size: 16px; }
-  .focus-facts { order: 5; margin-top: 2px; }
-  .focus-tags { order: 6; margin: 0; }
-  .table-focus-summary { order: 7; margin: 0; }
-  .reserve-selected-table { order: 8; }
-  .table-focus-world { order: 3; width: min(94vw, 390px); }
+  .table-focus-copy { order: 2; display: grid; gap: 10px; }
+  .focus-kicker, .table-focus-copy > p, .focus-facts, .focus-tags { display: none; }
+  .table-focus-copy h3 { margin: 0; font-size: 34px; }
+  .table-focus-summary { margin: 0; padding: 10px 12px; }
+  .reserve-selected-table { min-height: 54px; }
+  .table-focus-world { order: 1; width: min(42dvh, 82vw, 360px); }
   .focus-instruction { bottom: 2.5%; }
   .show-preview .experience-progress { position: fixed; z-index: 45; top: max(14px, env(safe-area-inset-top)); }
 }
@@ -274,7 +271,7 @@
 @media (max-width: 420px) {
   .experience-progress li button { gap: 4px; padding-inline: 7px; }
   .table-focus { padding-inline: 14px; }
-  .table-focus-world { width: min(96vw, 355px); }
+  .table-focus-world { width: min(40dvh, 80vw, 300px); }
   .focus-table-slab { border-width: 7px; }
 }
 

@@ -26,7 +26,7 @@ import { Input } from '@/components/ui/input';
 import { clampGuestCount, filterRestaurants, getFirstAvailableTableId, isTableAvailableForSlot } from '@/lib/booking';
 import {
   ACCOUNTS_KEY, RESERVATIONS_KEY, SESSION_KEY, addReservation, cancelReservation, createReservation,
-  parseAccounts, parseReservations, parseSession, type AccountProfile, type DemoAccount, type Reservation,
+  parseAccounts, parseReservations, parseSession, type AccountProfile, type LocalAccount, type Reservation,
 } from '@/lib/account';
 import { assetUrl } from '@/lib/assets';
 import { diningCopy } from '@/lib/dining-copy';
@@ -69,7 +69,6 @@ export default function Home() {
   const [selectedTableId, setSelectedTableId] = useState('S03');
   const [experienceView, setExperienceView] = useState<ExperienceView>('plan');
   const [transitioning, setTransitioning] = useState(false);
-  const [planScale, setPlanScale] = useState(1);
   const [reservationOpen, setReservationOpen] = useState(false);
   const [partnerOpen, setPartnerOpen] = useState(false);
   const [partnerMode, setPartnerMode] = useState('moveTables');
@@ -79,7 +78,7 @@ export default function Home() {
   const [seatPreference, setSeatPreference] = useState('any');
   const [suggestionStatus, setSuggestionStatus] = useState<'matched' | 'empty' | null>(null);
   const [suggestionKey, setSuggestionKey] = useState('');
-  const [accounts, setAccounts] = useState<DemoAccount[]>([]);
+  const [accounts, setAccounts] = useState<LocalAccount[]>([]);
   const [profile, setProfile] = useState<AccountProfile | null>(null);
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [accountOpen, setAccountOpen] = useState(false);
@@ -108,6 +107,10 @@ export default function Home() {
   const visibleRestaurants = restaurants.filter((item) => filteredIds.has(item.id) && (!savedOnly || favorites.includes(item.id)));
 
   useEffect(() => { document.documentElement.lang = language.toLowerCase(); }, [language]);
+  useEffect(() => {
+    document.body.classList.toggle('table-focus-open', experienceView === 'table');
+    return () => document.body.classList.remove('table-focus-open');
+  }, [experienceView]);
   useEffect(() => {
     // Restore browser-only state after hydration; cancel if the page unmounts first.
     const frame = window.requestAnimationFrame(() => {
@@ -144,9 +147,6 @@ export default function Home() {
     if (!match) return;
     setSelectedTableId(match.id);
     setExperienceView('plan');
-    const viewport = document.querySelector<HTMLElement>('.plan-viewport');
-    const canvas = document.querySelector<HTMLElement>('.floorplan-canvas');
-    if (viewport && canvas) viewport.scrollTo({ left: canvas.offsetWidth * match.left / 100 - viewport.clientWidth / 2, behavior: 'instant' });
   }
   function availableTimesFor(targetId: string) {
     const target = restaurants.find((item) => item.id === targetId) ?? restaurants[0];
@@ -166,7 +166,6 @@ export default function Home() {
     setRestaurantId(nextId);
     setSelectedTableId(getFirstAvailableTableId(next.tables, nextSlot) ?? next.tables[0].id);
     setExperienceView('plan');
-    setPlanScale(1);
     window.setTimeout(() => document.getElementById('restaurant')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 40);
   }
 
@@ -193,7 +192,7 @@ export default function Home() {
     return tag ? localizeTag(tag, language) : filter;
   }
 
-  function updateAccounts(next: DemoAccount[]) {
+  function updateAccounts(next: LocalAccount[]) {
     setAccounts(next);
     try { localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(next)); }
     catch { setStorageUnavailable(true); }
@@ -305,7 +304,7 @@ export default function Home() {
             <div className="plan-titlebar"><div><span>{restaurant.name} · {t.floorEvening}</span><h3>{t.choose}</h3></div><div className="availability-key"><span><i className="key-available" />{t.available}</span><span><i className="key-reserved" />{t.reserved}</span><span><i className="key-selected" />{t.selected}</span><strong>{availableCount} {t.tables}</strong></div></div>
             <div className="seat-finder"><label htmlFor="seat-preference"><Sparkles />{t.seatPreference}</label><select id="seat-preference" value={seatPreference} onChange={(event) => setSeatPreference(event.target.value)}><option value="any">{t.anySeat}</option>{['window', 'quiet', 'terrace', 'sea', 'private'].map((tag) => <option key={tag} value={tag}>{localizeTag(tag, language)}</option>)}</select><Button variant="outline" type="button" onClick={suggestSeat}>{t.suggestSeat}<ArrowRight /></Button></div>
             {suggestionStatus && suggestionKey === currentSuggestionKey && <output className="seat-feedback">{suggestionStatus === 'matched' ? `${selectedTable.id} · ${t.matchNote}` : t.noMatch}</output>}
-            <FloorPlan restaurant={restaurant} tables={availability} selectedId={selectedTable.available ? selectedTable.id : ''} language={language} labels={labels} scale={planScale} onScale={setPlanScale} onSelect={(id) => { setSelectedTableId(id); setSuggestionStatus(null); setExperienceView('plan'); }} /><p className="plan-help"><CircleDot />{t.planHelp}</p>
+            <FloorPlan restaurant={restaurant} tables={availability} selectedId={selectedTable.available ? selectedTable.id : ''} language={language} labels={labels} onSelect={(id) => { setSelectedTableId(id); setSuggestionStatus(null); setExperienceView('plan'); }} /><p className="plan-help"><CircleDot />{t.planHelp}</p>
           </section>
           <aside className="table-context">
             <span className="context-kicker">{t.whyThis}</span>
@@ -334,7 +333,7 @@ export default function Home() {
         <div className="partner-product"><div className="partner-toolbar"><strong>{t.partnerTools}</strong><Badge variant="outline">OTUR · LIVE PLAN</Badge></div><div className="partner-workspace"><aside>{partnerToolKeys.map(({ key, icon: Icon }) => <button key={key} type="button" className={partnerMode === key ? 'active' : ''} onClick={() => setPartnerMode(key)}><Icon /><span>{labels[key]}</span></button>)}</aside><div className={`partner-plan mode-${partnerMode}`}><span className="partner-zone zone-a">{t.indoorZone}</span><span className="partner-zone zone-b">{t.terraceZone}</span>{[[22, 26], [49, 23], [75, 29], [30, 63], [61, 62], [84, 69]].map(([left, top], index) => <button key={index} type="button" style={{ left: `${left}%`, top: `${top}%` }}><span>{index + 1}</span></button>)}<output>{labels[partnerMode]}</output></div></div></div>
       </section>
 
-      <footer className="site-footer"><OturLogo /><p>{t.promise}<br />Baku, Azerbaijan</p><span>{t.prototype}</span></footer>
+      <footer className="site-footer"><OturLogo /><p>{t.promise}<br />Baku, Azerbaijan</p><span>{t.footerNote}</span></footer>
       <nav className="mobile-dock" aria-label={t.account}><a href="#top"><House /><span>OTUR</span></a><a href="#discover"><UtensilsCrossed /><span>{t.explore}</span></a><button type="button" onClick={() => profile ? setProfileOpen(true) : setAccountOpen(true)}><UserRound /><span>{profile ? t.reservationsNav : t.signIn}</span></button></nav>
       {profile && <BookingDialog open={reservationOpen} onOpenChange={setReservationOpen} restaurant={restaurant} table={selectedTable} date={date} time={time} guests={guests} profile={profile} onConfirm={confirmReservation} language={language} labels={labels} />}
       <AccountDialog open={accountOpen} onOpenChange={(open) => { setAccountOpen(open); if (!open && !profile) setPendingReservation(false); }} accounts={accounts} onAccountsChange={updateAccounts} onSignedIn={signIn} labels={labels} />

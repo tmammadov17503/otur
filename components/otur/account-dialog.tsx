@@ -1,19 +1,19 @@
 'use client';
 
 import { useState } from 'react';
-import { ArrowRight, LockKeyhole, Mail, ShieldCheck, UserRound } from 'lucide-react';
+import { ArrowRight, LockKeyhole, Mail, Phone, UserRound } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { createAccount, toProfile, validateAccountInput, verifyAccount, type AccountProfile, type DemoAccount } from '@/lib/account';
+import { PHONE_COUNTRIES, createAccount, normalizeInternationalPhone, toProfile, validateAccountInput, verifyAccount, type AccountProfile, type LocalAccount } from '@/lib/account';
 
 type Props = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  accounts: DemoAccount[];
-  onAccountsChange: (accounts: DemoAccount[]) => void;
+  accounts: LocalAccount[];
+  onAccountsChange: (accounts: LocalAccount[]) => void;
   onSignedIn: (profile: AccountProfile) => void;
   labels: Record<string, string>;
 };
@@ -22,7 +22,8 @@ export function AccountDialog({ open, onOpenChange, accounts, onAccountsChange, 
   const [mode, setMode] = useState<'signin' | 'create'>('signin');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('+994 ');
+  const [countryIso, setCountryIso] = useState('AZ');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
@@ -57,8 +58,14 @@ export function AccountDialog({ open, onOpenChange, accounts, onAccountsChange, 
     setError('');
     setBusy(true);
     try {
+      const country = PHONE_COUNTRIES.find((item) => item.iso === countryIso) ?? PHONE_COUNTRIES[0];
+      const internationalPhone = normalizeInternationalPhone(country.dialCode, phone);
+      if (!internationalPhone) {
+        setError(labels.accountError);
+        return;
+      }
       if (mode === 'signin') {
-        const account = accounts.find((item) => item.email === email.trim().toLowerCase());
+        const account = accounts.find((item) => item.phone === internationalPhone);
         if (!account || !await verifyAccount(account, password)) {
           setError(labels.signInError);
           return;
@@ -66,12 +73,12 @@ export function AccountDialog({ open, onOpenChange, accounts, onAccountsChange, 
         finish(toProfile(account));
         return;
       }
-      const checked = validateAccountInput({ name, email, phone, password });
+      const checked = validateAccountInput({ name, email, phone: internationalPhone, password });
       if (!checked.valid) {
         setError(labels.accountError);
         return;
       }
-      if (accounts.some((item) => item.email === checked.value.email)) {
+      if (accounts.some((item) => item.phone === checked.value.phone || (checked.value.email && item.email === checked.value.email))) {
         setError(labels.accountExists);
         return;
       }
@@ -99,19 +106,20 @@ export function AccountDialog({ open, onOpenChange, accounts, onAccountsChange, 
           <button type="button" role="tab" aria-selected={mode === 'signin'} onClick={() => changeMode('signin')}>{labels.signIn}</button>
           <button type="button" role="tab" aria-selected={mode === 'create'} onClick={() => changeMode('create')}>{labels.createAccount}</button>
         </div>
-        <button className="demo-account-button" type="button" onClick={() => finish({ id: 'otur-demo-guest', name: labels.demoGuest, email: 'demo@otur.local', phone: '+994 50 000 00 00' })}>
-          <span><ShieldCheck /><strong>{labels.useDemoAccount}</strong><small>{labels.demoAccountNote}</small></span><ArrowRight />
-        </button>
-        <div className="account-divider"><span>{labels.or}</span></div>
         <form className="account-form" onSubmit={submit} noValidate>
           {mode === 'create' && <div><Label htmlFor="account-name">{labels.name}</Label><div className="icon-field"><UserRound /><Input id="account-name" value={name} onChange={(event) => setName(event.target.value)} autoComplete="name" /></div></div>}
-          <div><Label htmlFor="account-email">{labels.email}</Label><div className="icon-field"><Mail /><Input id="account-email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} autoComplete="email" /></div></div>
-          {mode === 'create' && <div><Label htmlFor="account-phone">{labels.phone}</Label><Input id="account-phone" value={phone} onChange={(event) => setPhone(event.target.value)} autoComplete="tel" inputMode="tel" /></div>}
+          {mode === 'create' && <div><Label htmlFor="account-email">{labels.email} <small>{labels.optional}</small></Label><div className="icon-field"><Mail /><Input id="account-email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} autoComplete="email" /></div></div>}
+          <div>
+            <Label htmlFor="account-phone">{labels.phone}</Label>
+            <div className="phone-field">
+              <div className="country-select"><Phone /><select id="account-country" value={countryIso} onChange={(event) => setCountryIso(event.target.value)} aria-label={labels.countryCode}>{PHONE_COUNTRIES.map((item) => <option key={item.iso} value={item.iso}>{item.flag} {item.name} ({item.dialCode})</option>)}</select></div>
+              <Input id="account-phone" value={phone} onChange={(event) => setPhone(event.target.value)} autoComplete="tel-national" inputMode="tel" placeholder={(PHONE_COUNTRIES.find((item) => item.iso === countryIso) ?? PHONE_COUNTRIES[0]).example} />
+            </div>
+          </div>
           <div><Label htmlFor="account-password">{labels.password}</Label><div className="icon-field"><LockKeyhole /><Input id="account-password" type="password" value={password} onChange={(event) => setPassword(event.target.value)} autoComplete={mode === 'signin' ? 'current-password' : 'new-password'} /></div>{mode === 'create' && <small>{labels.passwordHelp}</small>}</div>
           {error && <p className="form-error" role="alert">{error}</p>}
           <Button className="confirm-button" type="submit" disabled={busy}>{busy ? labels.pleaseWait : mode === 'signin' ? labels.signIn : labels.createAccount}<ArrowRight /></Button>
         </form>
-        <p className="prototype-note"><ShieldCheck />{labels.localAccountNote}</p>
       </DialogContent>
     </Dialog>
   );

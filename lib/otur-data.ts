@@ -24,6 +24,8 @@ export type Restaurant = {
   price: string;
   hours: string;
   address: Localized;
+  latitude: number;
+  longitude: number;
   about: Localized;
   phone: string;
   priceGuide: Localized;
@@ -71,6 +73,8 @@ export const restaurants: Restaurant[] = [
     price: '₼₼₼',
     hours: '18:00 — 00:00',
     address: L('12 Kiçik Qala küçəsi, İçərişəhər, Bakı AZ1001', '12 Kichik Gala Street, Old City, Baku AZ1001', 'ул. Кичик Гала, 12, Ичери-шехер, Баку AZ1001'),
+    latitude: 40.3665,
+    longitude: 49.8337,
     about: L('Yerli məhsullar, daş memarlıq və müasir təqdimatla Azərbaycan süfrəsinin sakit, zərif yozumu.', 'A calm, refined reading of the Azerbaijani table, shaped by local produce, stone architecture and modern presentation.', 'Спокойное современное прочтение азербайджанской кухни с местными продуктами и исторической архитектурой.'),
     phone: '+994 12 505 12 12',
     priceGuide: L('Nəfər başına təxminən 45–75 ₼', 'Around 45–75 ₼ per guest', 'Около 45–75 ₼ на гостя'),
@@ -105,6 +109,8 @@ export const restaurants: Restaurant[] = [
     price: '₼₼',
     hours: '12:00 — 00:00',
     address: L('15 Nobel prospekti, Ağ Şəhər, Bakı AZ1025', '15 Nobel Avenue, White City, Baku AZ1025', 'просп. Нобеля, 15, Белый город, Баку AZ1025'),
+    latitude: 40.3837,
+    longitude: 49.8758,
     about: L('Açıq mətbəx, mövsümi qril və bağ hissi ilə gündüzdən axşama keçən rahat məkan.', 'An easy all-day room with an open kitchen, seasonal grill and the feeling of a garden moving indoors.', 'Расслабленный ресторан с открытой кухней, сезонным грилем и атмосферой сада.'),
     phone: '+994 12 404 20 20',
     priceGuide: L('Nəfər başına təxminən 30–55 ₼', 'Around 30–55 ₼ per guest', 'Около 30–55 ₼ на гостя'),
@@ -139,6 +145,8 @@ export const restaurants: Restaurant[] = [
     price: '₼₼₼',
     hours: '13:00 — 01:00',
     address: L('123 Neftçilər prospekti, Bayıl, Bakı AZ1003', '123 Neftchilar Avenue, Bayil, Baku AZ1003', 'просп. Нефтяников, 123, Баил, Баку AZ1003'),
+    latitude: 40.3507,
+    longitude: 49.8352,
     about: L('Xəzər tərəfə açılan pəncərələr, dəniz məhsulları və günbatımı üçün hazırlanmış geniş terras.', 'Caspian-facing windows, a seafood-led menu and a generous terrace designed around the sunset.', 'Панорамные окна на Каспий, кухня с акцентом на морепродукты и просторная терраса.'),
     phone: '+994 12 310 88 88',
     priceGuide: L('Nəfər başına təxminən 60–95 ₼', 'Around 60–95 ₼ per guest', 'Около 60–95 ₼ на гостя'),

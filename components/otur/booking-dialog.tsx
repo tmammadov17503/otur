@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { CalendarPlus, Check, Eye, Mail, Phone, Share2, ShieldCheck } from 'lucide-react';
+import { CalendarPlus, Check, Eye, Mail, Phone, Share2 } from 'lucide-react';
 
 import { TableGlyph } from '@/components/otur/table-glyph';
 import { Button } from '@/components/ui/button';
@@ -60,7 +60,7 @@ export function BookingDialog({ open, onOpenChange, restaurant, table, date, tim
     const url = createPlanUrl(window.location.href, plan);
     try {
       if (navigator.share) {
-        await navigator.share({ title: `OTUR · ${restaurant.name}`, text: labels.demoPlan, url });
+        await navigator.share({ title: `OTUR · ${restaurant.name}`, text: labels.shareReservation, url });
         return;
       }
       await navigator.clipboard.writeText(url);
@@ -89,7 +89,6 @@ export function BookingDialog({ open, onOpenChange, restaurant, table, date, tim
             <DialogTitle>{labels.planReady}</DialogTitle>
             <DialogDescription>{restaurant.name} · {table.id} · {date} · {time} · {guests} {labels.seats}</DialogDescription>
           </DialogHeader>
-          <p className="prototype-note">{labels.demoPlan}</p>
           <div className="confirmation-tags">
             {table.tags.slice(0, 3).map((tag) => <span key={tag}>{localizeTag(tag, language)}</span>)}
           </div>
@@ -125,9 +124,8 @@ export function BookingDialog({ open, onOpenChange, restaurant, table, date, tim
           <span><small>{restaurant.name} · {table.id}</small><strong>{date} · {time} · {guests} {labels.seats}</strong></span>
           <Check />
         </div>
-        <p className="prototype-note"><ShieldCheck />{labels.localReservationNote}</p>
         <form className="reservation-form" onSubmit={submit} noValidate>
-          <div className="booking-contact"><span><Mail />{profile.email}</span><span><Phone />{profile.phone}</span></div>
+          <div className="booking-contact">{profile.email && <span><Mail />{profile.email}</span>}<span><Phone />{profile.phone}</span></div>
           <div><Label htmlFor="guest-request">{labels.request} <small>{labels.optional}</small></Label><Textarea id="guest-request" value={request} maxLength={500} onChange={(event) => setRequest(event.target.value)} placeholder={labels.requestPlaceholder} /></div>
           <label className="policy-check"><input type="checkbox" checked={policyAccepted} onChange={(event) => setPolicyAccepted(event.target.checked)} /><span>{labels.acceptCancellationPolicy}</span></label>
           <Button type="submit" className="confirm-button" disabled={!policyAccepted}>{labels.confirm}<Check /></Button>

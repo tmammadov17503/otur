@@ -1,8 +1,21 @@
-import { isAzerbaijanPhone } from './booking.js';
+export const ACCOUNTS_KEY = 'otur-accounts-v2';
+export const SESSION_KEY = 'otur-session-v2';
+export const RESERVATIONS_KEY = 'otur-reservations-v2';
 
-export const ACCOUNTS_KEY = 'otur-demo-accounts-v1';
-export const SESSION_KEY = 'otur-demo-session-v1';
-export const RESERVATIONS_KEY = 'otur-demo-reservations-v1';
+export const PHONE_COUNTRIES = [
+  { iso: 'AZ', flag: '🇦🇿', name: 'Azerbaijan', dialCode: '+994', example: '50 123 45 67' },
+  { iso: 'TR', flag: '🇹🇷', name: 'Türkiye', dialCode: '+90', example: '532 123 45 67' },
+  { iso: 'GE', flag: '🇬🇪', name: 'Georgia', dialCode: '+995', example: '555 12 34 56' },
+  { iso: 'GB', flag: '🇬🇧', name: 'United Kingdom', dialCode: '+44', example: '7911 123456' },
+  { iso: 'US', flag: '🇺🇸', name: 'United States / Canada', dialCode: '+1', example: '415 555 2671' },
+  { iso: 'AE', flag: '🇦🇪', name: 'United Arab Emirates', dialCode: '+971', example: '50 123 4567' },
+  { iso: 'RU', flag: '🇷🇺', name: 'Russia', dialCode: '+7', example: '912 345 67 89' },
+  { iso: 'UA', flag: '🇺🇦', name: 'Ukraine', dialCode: '+380', example: '50 123 4567' },
+  { iso: 'DE', flag: '🇩🇪', name: 'Germany', dialCode: '+49', example: '1512 3456789' },
+  { iso: 'FR', flag: '🇫🇷', name: 'France', dialCode: '+33', example: '6 12 34 56 78' },
+  { iso: 'IT', flag: '🇮🇹', name: 'Italy', dialCode: '+39', example: '312 345 6789' },
+  { iso: 'ES', flag: '🇪🇸', name: 'Spain', dialCode: '+34', example: '612 34 56 78' },
+] as const;
 
 export type AccountProfile = {
   id: string;
@@ -11,7 +24,7 @@ export type AccountProfile = {
   phone: string;
 };
 
-export type DemoAccount = AccountProfile & {
+export type LocalAccount = AccountProfile & {
   salt: string;
   verifier: string;
   createdAt: string;
@@ -38,23 +51,32 @@ type ReservationInput = Omit<Reservation, 'id' | 'status' | 'createdAt' | 'cance
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+export function normalizeInternationalPhone(dialCode: string, phone: string) {
+  const raw = phone.trim();
+  if (!raw) return null;
+  const countryDigits = dialCode.replace(/\D/g, '');
+  const phoneDigits = raw.replace(/\D/g, '');
+  const digits = raw.startsWith('+') ? phoneDigits : `${countryDigits}${phoneDigits.replace(/^0+/, '')}`;
+  return /^\d{8,15}$/.test(digits) ? `+${digits}` : null;
+}
+
 export function validateAccountInput(input: AccountInput) {
   const value = {
     name: input.name.trim().replace(/\s+/g, ' '),
     email: input.email.trim().toLowerCase(),
-    phone: input.phone.trim().replace(/\s+/g, ' '),
+    phone: normalizeInternationalPhone('', input.phone) ?? '',
     password: input.password,
   };
   const valid = value.name.length >= 2 && value.name.length <= 80
-    && emailPattern.test(value.email) && value.email.length <= 160
-    && isAzerbaijanPhone(value.phone) && value.password.length >= 8 && value.password.length <= 128;
+    && (!value.email || emailPattern.test(value.email)) && value.email.length <= 160
+    && Boolean(value.phone) && value.password.length >= 8 && value.password.length <= 128;
   return valid ? { valid: true as const, value } : { valid: false as const };
 }
 
-function isAccount(value: unknown): value is DemoAccount {
+function isAccount(value: unknown): value is LocalAccount {
   if (!value || typeof value !== 'object') return false;
-  const item = value as Partial<DemoAccount>;
-  return ['id', 'name', 'email', 'phone', 'salt', 'verifier', 'createdAt'].every((key) => typeof item[key as keyof DemoAccount] === 'string');
+  const item = value as Partial<LocalAccount>;
+  return ['id', 'name', 'email', 'phone', 'salt', 'verifier', 'createdAt'].every((key) => typeof item[key as keyof LocalAccount] === 'string');
 }
 
 function isReservation(value: unknown): value is Reservation {
@@ -108,7 +130,7 @@ async function passwordVerifier(password: string, salt: Uint8Array) {
   return bytesToBase64(new Uint8Array(bits));
 }
 
-export async function createAccount(input: AccountInput, now = new Date().toISOString()): Promise<DemoAccount | null> {
+export async function createAccount(input: AccountInput, now = new Date().toISOString()): Promise<LocalAccount | null> {
   const checked = validateAccountInput(input);
   if (!checked.valid) return null;
   const salt = crypto.getRandomValues(new Uint8Array(16));
@@ -123,12 +145,12 @@ export async function createAccount(input: AccountInput, now = new Date().toISOS
   };
 }
 
-export async function verifyAccount(account: DemoAccount, password: string) {
+export async function verifyAccount(account: LocalAccount, password: string) {
   if (!password || password.length > 128) return false;
   return account.verifier === await passwordVerifier(password, base64ToBytes(account.salt));
 }
 
-export function toProfile(account: DemoAccount): AccountProfile {
+export function toProfile(account: LocalAccount): AccountProfile {
   return { id: account.id, name: account.name, email: account.email, phone: account.phone };
 }
 

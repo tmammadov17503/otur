@@ -59,10 +59,7 @@ body { font-size: var(--text-body); }
 .availability-key i { width: 9px; height: 9px; }
 .seat-finder label, .seat-finder select, .seat-finder button { font-size: var(--text-label); }
 .seat-finder label svg { width: 20px; height: 20px; }
-.zoom-controls { height: 44px; width: 160px; grid-template-columns: 44px 1fr 44px; left: calc(100% - 174px); }
-.zoom-controls button { min-height: 44px; }
-.zoom-controls svg { width: 17px; height: 17px; }
-.zoom-controls span, .floor-table > span:last-child { font-size: var(--text-meta); }
+.floor-table > span:last-child { font-size: var(--text-meta); }
 .plan-zone, .plan-entrance, .heritage-screen, .garden-feature { font-size: var(--text-meta); letter-spacing: .02em; }
 .table-context { padding: 30px 24px; }
 .context-title [data-slot='badge'], .context-glyph > span, .context-tags span { font-size: var(--text-meta); }

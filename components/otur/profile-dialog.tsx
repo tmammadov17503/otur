@@ -26,7 +26,7 @@ export function ProfileDialog({ open, onOpenChange, profile, reservations, onCan
         <DialogHeader>
           <span className="sheet-kicker">{labels.myOtur}</span>
           <DialogTitle>{profile.name}</DialogTitle>
-          <DialogDescription>{profile.email} · {profile.phone}</DialogDescription>
+          <DialogDescription>{profile.email ? `${profile.email} · ` : ''}{profile.phone}</DialogDescription>
         </DialogHeader>
         <section className="reservation-list" aria-labelledby="reservation-list-title">
           <div className="reservation-list-heading"><div><span>{labels.reservations}</span><h3 id="reservation-list-title">{labels.yourTables}</h3></div><strong>{mine.filter((item) => item.status === 'confirmed').length}</strong></div>
@@ -45,4 +45,3 @@ export function ProfileDialog({ open, onOpenChange, profile, reservations, onCan
     </Dialog>
   );
 }
-

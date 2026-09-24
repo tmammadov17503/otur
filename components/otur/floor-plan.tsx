@@ -1,4 +1,4 @@
-import { DoorOpen, Minus, Plus } from 'lucide-react';
+import { DoorOpen } from 'lucide-react';
 
 import { TableGlyph } from '@/components/otur/table-glyph';
 import { localizeTag, type Language, type Restaurant, type RestaurantTable } from '@/lib/otur-data';
@@ -11,8 +11,6 @@ type FloorPlanProps = {
   selectedId: string;
   language: Language;
   labels: Record<string, string>;
-  scale: number;
-  onScale: (scale: number) => void;
   onSelect: (id: string) => void;
 };
 
@@ -58,16 +56,11 @@ function PlanArchitecture({ restaurant, labels }: Pick<FloorPlanProps, 'restaura
   );
 }
 
-export function FloorPlan({ restaurant, tables, selectedId, language, labels, scale, onScale, onSelect }: FloorPlanProps) {
+export function FloorPlan({ restaurant, tables, selectedId, language, labels, onSelect }: FloorPlanProps) {
   return (
     <div className="plan-viewport" data-restaurant={restaurant.id}>
-      <div className="zoom-controls" aria-label={labels.choose}>
-        <button type="button" onClick={() => onScale(Math.max(.84, scale - .08))} aria-label={`${labels.choose} −`}><Minus /></button>
-        <span>{Math.round(scale * 100)}%</span>
-        <button type="button" onClick={() => onScale(Math.min(1.24, scale + .08))} aria-label={`${labels.choose} +`}><Plus /></button>
-      </div>
       <div className="floorplan-world">
-        <div className={`floorplan-canvas plan-${restaurant.planVariant}`} style={{ transform: `scale(${scale})` }}>
+        <div className={`floorplan-canvas plan-${restaurant.planVariant}`}>
           <PlanArchitecture restaurant={restaurant} labels={labels} />
           {tables.map((table) => (
             <button

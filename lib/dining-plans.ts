@@ -105,9 +105,9 @@ export function createCalendar(plan: DiningPlan, restaurantName: string, now = n
     'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//OTUR//Dining Plan//EN', 'CALSCALE:GREGORIAN',
     'BEGIN:VEVENT', `UID:${plan.restaurantId}-${plan.tableId}-${calendarTime(start)}@otur.local`,
     `DTSTAMP:${calendarTime(now)}`, `DTSTART:${calendarTime(start)}`, `DTEND:${calendarTime(end)}`,
-    `SUMMARY:${escapeCalendar(`OTUR plan · ${restaurantName}`)}`,
+    `SUMMARY:${escapeCalendar(`OTUR reservation · ${restaurantName}`)}`,
     `LOCATION:${escapeCalendar(`${restaurantName}, Baku, Azerbaijan`)}`,
-    `DESCRIPTION:${escapeCalendar(`Prototype dining plan — not a confirmed restaurant reservation. Table ${plan.tableId}, ${plan.guests} guests. Duration is a suggested two hours.`)}`,
-    'STATUS:TENTATIVE', 'TRANSP:TRANSPARENT', 'END:VEVENT', 'END:VCALENDAR', '',
+    `DESCRIPTION:${escapeCalendar(`Table ${plan.tableId} for ${plan.guests} guests. Free cancellation is available until two hours before the reservation.`)}`,
+    'STATUS:CONFIRMED', 'TRANSP:OPAQUE', 'END:VEVENT', 'END:VCALENDAR', '',
   ].map(foldCalendarLine).join('\r\n');
 }

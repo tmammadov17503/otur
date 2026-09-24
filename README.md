@@ -2,9 +2,9 @@
 
 [![Deploy OTUR to GitHub Pages](https://github.com/tmammadov17503/otur/actions/workflows/pages.yml/badge.svg)](https://github.com/tmammadov17503/otur/actions/workflows/pages.yml)
 
-OTUR is a calm, visual restaurant reservation prototype for Baku. Guests can discover a restaurant, inspect its floor plan, choose a specific available table and exact seat, and reserve without creating an account.
+OTUR is a calm, visual restaurant reservation experience for Baku. Guests can discover a restaurant, review its practical details, inspect a responsive floor plan, choose a specific available table, and reserve through a device-local account.
 
-**Public demo:** [tmammadov17503.github.io/otur](https://tmammadov17503.github.io/otur/)
+**Public website:** [tmammadov17503.github.io/otur](https://tmammadov17503.github.io/otur/)
 
 ## What is included
 
@@ -12,8 +12,11 @@ OTUR is a calm, visual restaurant reservation prototype for Baku. Guests can dis
 - An interactive hero journey from restaurant discovery to the floor plan and chosen table
 - Search and atmosphere filters for Baku restaurants
 - Animated top-down floor plans with table capacity, availability, shape, and dining-category details
-- A room-to-table fly-in with individually selectable chairs and a chosen-seat reservation summary
-- A focused two-stage reservation flow: choose the room and table, then choose the exact seat and reserve
+- A focused table-selection view that fits phone and desktop screens without an internal scroll or zoom controls
+- High-resolution restaurant imagery and a clear table summary before reservation
+- Phone-first local accounts with international country flags and calling codes; email is optional
+- Account-gated reservations, reservation history, and cancellation controls
+- Restaurant addresses, contact details, opening hours, amenities, and map/directions links
 - Responsive layouts for desktop and mobile
 - Private, device-local restaurant favorites (no account required)
 - Table suggestions by atmosphere, party size, and simulated availability
@@ -24,7 +27,7 @@ OTUR is a calm, visual restaurant reservation prototype for Baku. Guests can dis
 - A restaurant-partner floor-plan editor concept
 - Automated tests, linting, production builds, and GitHub Pages deployment
 
-Restaurant-specific 3D seated views are intentionally deferred until partner venues can provide accurate floor plans, photography, and room data.
+Exact seat selection and restaurant-specific 3D seated views are intentionally deferred until partner venues can provide accurate measured floor plans, photography, and room data.
 
 ## Run locally
 
@@ -65,13 +68,20 @@ Pass a local or preview URL as the final argument to test an unpublished build. 
 
 Every push to `main` runs the GitHub Pages workflow. It installs from the lockfile, runs coverage and lint checks, builds the static site, and deploys the result to the public demo URL.
 
-## Prototype status
+## Data storage and current limitations
 
-Restaurant data, availability, and reservations are simulated in the browser. A production release would connect these flows to restaurant inventory, authentication, notifications, and a secure booking API.
+There is currently no server database, Firebase project, or Supabase project. The website works as a polished front-end prototype and stores state in the current browser's `localStorage` only:
 
-The seated perspective is an interactive concept visualization built from each restaurant's generated interior imagery. It communicates the intended product interaction but is not a measured 360° panorama or a verified real-world sightline.
+- `otur-accounts-v2` stores the local profile, phone number, optional email, and a randomly salted PBKDF2 password verifier. The plaintext password is never stored.
+- `otur-session-v2` stores the active local profile so the user remains signed in on that device.
+- `otur-reservations-v2` stores that device's reservations and cancellation state.
+- `otur:favorites:v1` stores restaurant IDs selected as favorites.
 
-Favorites store restaurant IDs only on the current device. Contact details are never included in storage, shared links, or calendar files. A shared link restores a proposed restaurant, table, date, time, and guest count; it does not hold inventory. Calendar entries are tentative two-hour plans, not confirmed reservations.
+Clearing browser/site data removes these records. Accounts and reservations do not sync to another browser or device, and this local credential layer is not a replacement for production authentication. Static restaurant details and illustrative availability are bundled with the website; they are not live restaurant inventory. Public restaurant coordinates may be sent to Google Maps for the embedded map and directions link, but OTUR does not send user profile or reservation data to Google.
+
+A production launch should move authentication and reservations to a secure backend such as Supabase/Firebase or an application API backed by PostgreSQL, with server-side authorization, row-level access controls, verified phone or email, notifications, and transactional restaurant inventory.
+
+Shared links contain a proposed restaurant, table, date, time, and guest count only; they do not hold inventory or include account contact information. Downloaded calendar entries represent the reservation details saved by this browser.
 
 ## Visual assets
 
