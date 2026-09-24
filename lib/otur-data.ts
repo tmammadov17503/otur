@@ -23,6 +23,16 @@ export type Restaurant = {
   atmosphere: Localized;
   price: string;
   hours: string;
+  address: Localized;
+  about: Localized;
+  phone: string;
+  priceGuide: Localized;
+  serviceHours: Localized;
+  payment: Localized;
+  parking: Localized;
+  dressCode: Localized;
+  chef: string;
+  accessibility: Localized;
   rating: string;
   tags: string[];
   image: string;
@@ -60,6 +70,16 @@ export const restaurants: Restaurant[] = [
     atmosphere: L('İsti · yaxın · memarlıq', 'Warm · intimate · architectural', 'Тепло · камерно · архитектурно'),
     price: '₼₼₼',
     hours: '18:00 — 00:00',
+    address: L('12 Kiçik Qala küçəsi, İçərişəhər, Bakı AZ1001', '12 Kichik Gala Street, Old City, Baku AZ1001', 'ул. Кичик Гала, 12, Ичери-шехер, Баку AZ1001'),
+    about: L('Yerli məhsullar, daş memarlıq və müasir təqdimatla Azərbaycan süfrəsinin sakit, zərif yozumu.', 'A calm, refined reading of the Azerbaijani table, shaped by local produce, stone architecture and modern presentation.', 'Спокойное современное прочтение азербайджанской кухни с местными продуктами и исторической архитектурой.'),
+    phone: '+994 12 505 12 12',
+    priceGuide: L('Nəfər başına təxminən 45–75 ₼', 'Around 45–75 ₼ per guest', 'Около 45–75 ₼ на гостя'),
+    serviceHours: L('Axşam yeməyi · hər gün 18:00–00:00', 'Dinner · daily 18:00–00:00', 'Ужин · ежедневно 18:00–00:00'),
+    payment: L('Visa, Mastercard, nağd', 'Visa, Mastercard, cash', 'Visa, Mastercard, наличные'),
+    parking: L('Yaxınlıqda ödənişli dayanacaq', 'Paid parking nearby', 'Платная парковка рядом'),
+    dressCode: L('Səliqəli rahat', 'Smart casual', 'Smart casual'),
+    chef: 'Nigar Məmmədova',
+    accessibility: L('Əsas zal pilləsiz girişlidir', 'Step-free access to the main dining room', 'В главный зал есть безбарьерный вход'),
     rating: '4.8',
     tags: ['traditional', 'quiet', 'date'],
     image: '/restaurants/seki-grid.webp',
@@ -84,6 +104,16 @@ export const restaurants: Restaurant[] = [
     atmosphere: L('Təbii · rahat · zərif', 'Natural · relaxed · elegant', 'Естественно · свободно · элегантно'),
     price: '₼₼',
     hours: '12:00 — 00:00',
+    address: L('15 Nobel prospekti, Ağ Şəhər, Bakı AZ1025', '15 Nobel Avenue, White City, Baku AZ1025', 'просп. Нобеля, 15, Белый город, Баку AZ1025'),
+    about: L('Açıq mətbəx, mövsümi qril və bağ hissi ilə gündüzdən axşama keçən rahat məkan.', 'An easy all-day room with an open kitchen, seasonal grill and the feeling of a garden moving indoors.', 'Расслабленный ресторан с открытой кухней, сезонным грилем и атмосферой сада.'),
+    phone: '+994 12 404 20 20',
+    priceGuide: L('Nəfər başına təxminən 30–55 ₼', 'Around 30–55 ₼ per guest', 'Около 30–55 ₼ на гостя'),
+    serviceHours: L('Nahar 12:00–16:00 · axşam 17:00–00:00', 'Lunch 12:00–16:00 · dinner 17:00–00:00', 'Обед 12:00–16:00 · ужин 17:00–00:00'),
+    payment: L('Visa, Mastercard, Apple Pay', 'Visa, Mastercard, Apple Pay', 'Visa, Mastercard, Apple Pay'),
+    parking: L('Ağ Şəhər yeraltı dayanacağı', 'White City underground parking', 'Подземная парковка Белого города'),
+    dressCode: L('Rahat', 'Casual', 'Повседневный'),
+    chef: 'Murad Əliyev',
+    accessibility: L('Pilləsiz giriş və əlçatan sanitar qovşağı', 'Step-free entrance and accessible restroom', 'Безбарьерный вход и доступная уборная'),
     rating: '4.7',
     tags: ['garden', 'terrace', 'family', 'new'],
     image: '/restaurants/hayat-grid.webp',
@@ -108,6 +138,16 @@ export const restaurants: Restaurant[] = [
     atmosphere: L('Açıq · sakit · premium', 'Open · calm · premium', 'Просторно · спокойно · премиально'),
     price: '₼₼₼',
     hours: '13:00 — 01:00',
+    address: L('123 Neftçilər prospekti, Bayıl, Bakı AZ1003', '123 Neftchilar Avenue, Bayil, Baku AZ1003', 'просп. Нефтяников, 123, Баил, Баку AZ1003'),
+    about: L('Xəzər tərəfə açılan pəncərələr, dəniz məhsulları və günbatımı üçün hazırlanmış geniş terras.', 'Caspian-facing windows, a seafood-led menu and a generous terrace designed around the sunset.', 'Панорамные окна на Каспий, кухня с акцентом на морепродукты и просторная терраса.'),
+    phone: '+994 12 310 88 88',
+    priceGuide: L('Nəfər başına təxminən 60–95 ₼', 'Around 60–95 ₼ per guest', 'Около 60–95 ₼ на гостя'),
+    serviceHours: L('Nahar 13:00–17:00 · axşam 18:00–01:00', 'Lunch 13:00–17:00 · dinner 18:00–01:00', 'Обед 13:00–17:00 · ужин 18:00–01:00'),
+    payment: L('Visa, Mastercard, AMEX', 'Visa, Mastercard, AMEX', 'Visa, Mastercard, AMEX'),
+    parking: L('Valet xidməti mövcuddur', 'Valet parking available', 'Доступен valet-паркинг'),
+    dressCode: L('Zərif rahat', 'Elegant casual', 'Элегантный casual'),
+    chef: 'Elvin Qasımov',
+    accessibility: L('Pilləsiz giriş və geniş keçidlər', 'Step-free entrance and wide aisles', 'Безбарьерный вход и широкие проходы'),
     rating: '4.9',
     tags: ['sea', 'terrace', 'sunset', 'date'],
     image: '/restaurants/xazri-grid.webp',

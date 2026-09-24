@@ -28,17 +28,16 @@ def audit(browser, url, width):
         expect(table_focus).to_be_visible()
         table_focus.evaluate("el => Promise.all(el.getAnimations().map(animation => animation.finished))")
         expect(page.locator(".experience-progress button")).to_have_count(2)
-        seats = page.locator(".seat-choice")
-        assert seats.count() >= 2
-        seats.nth(1).click()
-        expect(seats.nth(1), f"{browser.browser_type.name}-{width}: restaurant {index + 1}").to_have_attribute("aria-pressed", "true")
-        expect(page.locator(".seat-focus-summary")).to_contain_text("2")
-        assert page.locator(".reserve-selected-seat").bounding_box()["height"] >= 44
+        expect(page.locator(".seat-choice")).to_have_count(0)
+        expect(page.locator(".table-focus-summary")).to_be_visible()
+        assert page.locator(".reserve-selected-table").bounding_box()["height"] >= 44
         if index == 0:
             page.screenshot(path=f"work/comfort/{browser.browser_type.name}-{width}-preview.png")
-            page.locator(".reserve-selected-seat").click()
-            expect(page.get_by_role("dialog")).to_be_visible()
+            page.locator(".reserve-selected-table").click()
+            page.locator(".demo-account-button").click()
+            expect(page.locator(".reservation-sheet")).to_be_visible()
             page.keyboard.press("Escape")
+            expect(page.locator(".reservation-sheet")).to_be_hidden()
         page.locator(".table-focus-back").click()
     page.locator(".partner-copy > button").click()
     dialog = page.get_by_role("dialog")
@@ -61,7 +60,7 @@ def audit(browser, url, width):
     page.emulate_media(reduced_motion="reduce")
     page.locator(".see-table-button").click()
     expect(page.locator(".table-focus")).to_be_visible()
-    expect(page.locator(".reserve-selected-seat")).to_be_visible()
+    expect(page.locator(".reserve-selected-table")).to_be_visible()
     expect(page.locator("canvas[data-room-model='true']")).to_have_count(0)
     assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
     assert not errors, errors

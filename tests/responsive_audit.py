@@ -124,14 +124,13 @@ def audit_booking_flow(page: Page, url: str, name: str, width: int, height: int)
     table_focus.wait_for(state="visible")
     table_focus.evaluate("el => Promise.all(el.getAnimations().map(animation => animation.finished))")
     check(table_focus.is_visible(), "phone-flow: table focus is not visible", failures)
-    seats = page.locator(".seat-choice")
-    check(seats.count() >= 2, "phone-flow: selectable seats are missing", failures)
-    seats.nth(1).tap()
-    check(seats.nth(1).get_attribute("aria-pressed") == "true", f"{name}: seat selection did not update", failures)
-    check(page.locator(".reserve-selected-seat").is_visible(), "phone-flow: reserve action is not visible", failures)
+    check(page.locator(".seat-choice").count() == 0, "phone-flow: chair selection should be removed", failures)
+    check(page.locator(".reserve-selected-table").is_visible(), "phone-flow: reserve action is not visible", failures)
 
-    page.locator(".reserve-selected-seat").tap()
-    dialog = page.locator("[role='dialog']")
+    page.locator(".reserve-selected-table").tap()
+    page.locator(".demo-account-button").tap()
+    dialog = page.locator(".reservation-sheet")
+    dialog.wait_for(state="visible")
     check(dialog.is_visible(), "phone-flow: reservation dialog does not open", failures)
     box = dialog.bounding_box()
     dialog_style = dialog.evaluate(
@@ -156,8 +155,8 @@ def audit_booking_flow(page: Page, url: str, name: str, width: int, height: int)
     )
     SCREENSHOT_DIR.mkdir(parents=True, exist_ok=True)
     page.screenshot(path=str(SCREENSHOT_DIR / f"{name}-booking-dialog.png"), full_page=False)
-    check(page.locator("#guest-name").is_visible() and page.locator("#guest-phone").is_visible(),
-          "phone-flow: required reservation fields are not visible", failures)
+    check(page.locator("#guest-request").is_visible() and page.locator(".policy-check").is_visible(),
+          "phone-flow: reservation details are not visible", failures)
     return failures
 
 

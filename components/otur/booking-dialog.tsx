@@ -1,15 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { CalendarPlus, Check, Eye, Mail, Share2 } from 'lucide-react';
+import { CalendarPlus, Check, Eye, Mail, Phone, Share2, ShieldCheck } from 'lucide-react';
 
 import { TableGlyph } from '@/components/otur/table-glyph';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { isAzerbaijanPhone } from '@/lib/booking';
+import type { AccountProfile } from '@/lib/account';
 import { createCalendar, createPlanUrl } from '@/lib/dining-plans';
 import { localizeTag, type Language, type Restaurant, type RestaurantTable } from '@/lib/otur-data';
 
@@ -21,16 +20,16 @@ type BookingDialogProps = {
   date: string;
   time: string;
   guests: number;
-  seat: number;
+  profile: AccountProfile;
+  onConfirm: (request: string) => void;
   language: Language;
   labels: Record<string, string>;
 };
 
-export function BookingDialog({ open, onOpenChange, restaurant, table, date, time, guests, seat, language, labels }: BookingDialogProps) {
+export function BookingDialog({ open, onOpenChange, restaurant, table, date, time, guests, profile, onConfirm, language, labels }: BookingDialogProps) {
   const [confirmed, setConfirmed] = useState(false);
-  const [name, setName] = useState('');
-  const [phone, setPhone] = useState('+994 ');
-  const [error, setError] = useState('');
+  const [request, setRequest] = useState('');
+  const [policyAccepted, setPolicyAccepted] = useState(false);
   const [status, setStatus] = useState('');
   const [shareLink, setShareLink] = useState('');
   const plan = { restaurantId: restaurant.id, tableId: table.id, date, time, guests };
@@ -38,11 +37,10 @@ export function BookingDialog({ open, onOpenChange, restaurant, table, date, tim
   function changeOpen(nextOpen: boolean) {
     if (!nextOpen) {
       setConfirmed(false);
-      setError('');
       setStatus('');
       setShareLink('');
-      setName('');
-      setPhone('+994 ');
+      setRequest('');
+      setPolicyAccepted(false);
     }
     onOpenChange(nextOpen);
   }
@@ -76,11 +74,8 @@ export function BookingDialog({ open, onOpenChange, restaurant, table, date, tim
 
   function submit(event: { preventDefault(): void }) {
     event.preventDefault();
-    if (!name.trim() || !isAzerbaijanPhone(phone)) {
-      setError(labels.requiredError);
-      return;
-    }
-    setError('');
+    if (!policyAccepted) return;
+    onConfirm(request.trim().slice(0, 500));
     setConfirmed(true);
   }
 
@@ -92,7 +87,7 @@ export function BookingDialog({ open, onOpenChange, restaurant, table, date, tim
           <DialogHeader className="confirmation-header">
             <span className="sheet-kicker">{labels.planSaved} · {table.id}</span>
             <DialogTitle>{labels.planReady}</DialogTitle>
-            <DialogDescription>{restaurant.name} · {table.id} · {labels.seatLabel} {seat} · {date} · {time} · {guests} {labels.seats}</DialogDescription>
+            <DialogDescription>{restaurant.name} · {table.id} · {date} · {time} · {guests} {labels.seats}</DialogDescription>
           </DialogHeader>
           <p className="prototype-note">{labels.demoPlan}</p>
           <div className="confirmation-tags">
@@ -110,7 +105,7 @@ export function BookingDialog({ open, onOpenChange, restaurant, table, date, tim
             <Button type="button" variant="outline" onClick={sharePlan}><Share2 />{labels.share}</Button>
           </div>
           <output aria-live="polite">{status}</output>
-          {shareLink && <Input className="share-link" aria-label={labels.shareFallback} value={shareLink} readOnly onFocus={(event) => event.currentTarget.select()} />}
+          {shareLink && <input className="share-link" aria-label={labels.shareFallback} value={shareLink} readOnly onFocus={(event) => event.currentTarget.select()} />}
           <Button type="button" className="done-button" onClick={() => changeOpen(false)}>{labels.done}</Button>
         </DialogContent>
       </Dialog>
@@ -127,17 +122,15 @@ export function BookingDialog({ open, onOpenChange, restaurant, table, date, tim
         </DialogHeader>
         <div className="sheet-summary">
           <TableGlyph table={table} small />
-          <span><small>{restaurant.name} · {table.id} · {labels.seatLabel} {seat}</small><strong>{date} · {time} · {guests} {labels.seats}</strong></span>
+          <span><small>{restaurant.name} · {table.id}</small><strong>{date} · {time} · {guests} {labels.seats}</strong></span>
           <Check />
         </div>
-        <p className="prototype-note">{labels.demoPlan}</p>
+        <p className="prototype-note"><ShieldCheck />{labels.localReservationNote}</p>
         <form className="reservation-form" onSubmit={submit} noValidate>
-          <div><Label htmlFor="guest-name">{labels.name}</Label><Input id="guest-name" value={name} onChange={(event) => setName(event.target.value)} autoComplete="name" /></div>
-          <div><Label htmlFor="guest-phone">{labels.phone}</Label><Input id="guest-phone" value={phone} onChange={(event) => setPhone(event.target.value)} inputMode="tel" autoComplete="tel" /></div>
-          <div><Label htmlFor="guest-email">{labels.email} <small>{labels.optional}</small></Label><div className="icon-field"><Mail /><Input id="guest-email" type="email" autoComplete="email" placeholder="you@example.com" /></div></div>
-          <div><Label htmlFor="guest-request">{labels.request} <small>{labels.optional}</small></Label><Textarea id="guest-request" placeholder={labels.requestPlaceholder} /></div>
-          {error && <p className="form-error" role="alert">{error}</p>}
-          <Button type="submit" className="confirm-button">{labels.confirm}<Check /></Button>
+          <div className="booking-contact"><span><Mail />{profile.email}</span><span><Phone />{profile.phone}</span></div>
+          <div><Label htmlFor="guest-request">{labels.request} <small>{labels.optional}</small></Label><Textarea id="guest-request" value={request} maxLength={500} onChange={(event) => setRequest(event.target.value)} placeholder={labels.requestPlaceholder} /></div>
+          <label className="policy-check"><input type="checkbox" checked={policyAccepted} onChange={(event) => setPolicyAccepted(event.target.checked)} /><span>{labels.acceptCancellationPolicy}</span></label>
+          <Button type="submit" className="confirm-button" disabled={!policyAccepted}>{labels.confirm}<Check /></Button>
         </form>
       </DialogContent>
     </Dialog>

@@ -4,10 +4,11 @@ import { useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
 import {
   ArrowLeft, ArrowRight, CalendarDays, Check, ChevronDown, CircleDot, Clock3, Compass,
-  Eye, FileUp, Grip, Heart, Layers3, MapPin, Menu, Minus, Move, Plus, Search, Sparkles,
-  Star, Tags, Users, X,
+  Eye, FileUp, Grip, Heart, House, Layers3, MapPin, Menu, Minus, Move, Plus, Search, Sparkles,
+  Star, Tags, UserRound, Users, UtensilsCrossed, X,
 } from 'lucide-react';
 
+import { AccountDialog } from '@/components/otur/account-dialog';
 import { BookingDialog } from '@/components/otur/booking-dialog';
 import { DepthSurface } from '@/components/otur/depth-surface';
 import { DiningAccent } from '@/components/otur/dining-accent';
@@ -15,12 +16,18 @@ import { DiningScatter } from '@/components/otur/dining-scatter';
 import { FloorPlan } from '@/components/otur/floor-plan';
 import { HeroJourney } from '@/components/otur/hero-journey';
 import { PartnerDialog } from '@/components/otur/partner-dialog';
+import { ProfileDialog } from '@/components/otur/profile-dialog';
+import { RestaurantDetails } from '@/components/otur/restaurant-details';
 import { TableGlyph } from '@/components/otur/table-glyph';
 import { TableFocus } from '@/components/otur/table-focus';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { clampGuestCount, filterRestaurants, getFirstAvailableTableId, isTableAvailableForSlot } from '@/lib/booking';
+import {
+  ACCOUNTS_KEY, RESERVATIONS_KEY, SESSION_KEY, addReservation, cancelReservation, createReservation,
+  parseAccounts, parseReservations, parseSession, type AccountProfile, type DemoAccount, type Reservation,
+} from '@/lib/account';
 import { assetUrl } from '@/lib/assets';
 import { diningCopy } from '@/lib/dining-copy';
 import { FAVORITES_KEY, getBakuDate, parseFavorites, parseSharedPlan, recommendTable, toggleFavorite } from '@/lib/dining-plans';
@@ -60,7 +67,6 @@ export default function Home() {
   const [activeFilter, setActiveFilter] = useState('Tonight');
   const [restaurantId, setRestaurantId] = useState<'seki' | 'hayat' | 'xazri'>('seki');
   const [selectedTableId, setSelectedTableId] = useState('S03');
-  const [selectedSeat, setSelectedSeat] = useState(1);
   const [experienceView, setExperienceView] = useState<ExperienceView>('plan');
   const [transitioning, setTransitioning] = useState(false);
   const [planScale, setPlanScale] = useState(1);
@@ -73,6 +79,12 @@ export default function Home() {
   const [seatPreference, setSeatPreference] = useState('any');
   const [suggestionStatus, setSuggestionStatus] = useState<'matched' | 'empty' | null>(null);
   const [suggestionKey, setSuggestionKey] = useState('');
+  const [accounts, setAccounts] = useState<DemoAccount[]>([]);
+  const [profile, setProfile] = useState<AccountProfile | null>(null);
+  const [reservations, setReservations] = useState<Reservation[]>([]);
+  const [accountOpen, setAccountOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [pendingReservation, setPendingReservation] = useState(false);
   const currentSuggestionKey = `${restaurantId}|${date}|${time}|${guests}|${seatPreference}`;
 
   const t = { ...copy[language], ...diningCopy[language] };
@@ -83,7 +95,6 @@ export default function Home() {
     ...table, available: isTableAvailableForSlot(table, slot),
   })), [restaurant, slot]);
   const selectedTable = availability.find((table) => table.id === selectedTableId && table.available) ?? availability.find((table) => table.available) ?? availability[0];
-  const activeSeat = Math.min(selectedSeat, selectedTable.capacity);
   const availableCount = availability.filter((table) => table.available).length;
 
   const localizedSearchRecords = useMemo(() => restaurants.map((item) => ({
@@ -100,7 +111,12 @@ export default function Home() {
   useEffect(() => {
     // Restore browser-only state after hydration; cancel if the page unmounts first.
     const frame = window.requestAnimationFrame(() => {
-      try { setFavorites(parseFavorites(localStorage.getItem(FAVORITES_KEY))); }
+      try {
+        setFavorites(parseFavorites(localStorage.getItem(FAVORITES_KEY)));
+        setAccounts(parseAccounts(localStorage.getItem(ACCOUNTS_KEY)));
+        setProfile(parseSession(localStorage.getItem(SESSION_KEY)));
+        setReservations(parseReservations(localStorage.getItem(RESERVATIONS_KEY)));
+      }
       catch { setStorageUnavailable(true); }
       const shared = parseSharedPlan(window.location.search, restaurants, times, getBakuDate());
       if (shared) {
@@ -127,7 +143,6 @@ export default function Home() {
     setSuggestionStatus(match ? 'matched' : 'empty');
     if (!match) return;
     setSelectedTableId(match.id);
-    setSelectedSeat(1);
     setExperienceView('plan');
     const viewport = document.querySelector<HTMLElement>('.plan-viewport');
     const canvas = document.querySelector<HTMLElement>('.floorplan-canvas');
@@ -150,7 +165,6 @@ export default function Home() {
     const nextSlot = { restaurantId: next.id, date, time, guests };
     setRestaurantId(nextId);
     setSelectedTableId(getFirstAvailableTableId(next.tables, nextSlot) ?? next.tables[0].id);
-    setSelectedSeat(1);
     setExperienceView('plan');
     setPlanScale(1);
     window.setTimeout(() => document.getElementById('restaurant')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 40);
@@ -179,12 +193,70 @@ export default function Home() {
     return tag ? localizeTag(tag, language) : filter;
   }
 
+  function updateAccounts(next: DemoAccount[]) {
+    setAccounts(next);
+    try { localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(next)); }
+    catch { setStorageUnavailable(true); }
+  }
+
+  function signIn(next: AccountProfile) {
+    setProfile(next);
+    try { localStorage.setItem(SESSION_KEY, JSON.stringify(next)); }
+    catch { setStorageUnavailable(true); }
+    if (pendingReservation) {
+      setPendingReservation(false);
+      window.setTimeout(() => setReservationOpen(true), 360);
+    }
+  }
+
+  function signOut() {
+    setProfile(null);
+    try { localStorage.removeItem(SESSION_KEY); }
+    catch { setStorageUnavailable(true); }
+  }
+
+  function beginReservation() {
+    if (!profile) {
+      setPendingReservation(true);
+      setAccountOpen(true);
+      return;
+    }
+    setReservationOpen(true);
+  }
+
+  function confirmReservation(request: string) {
+    if (!profile) return;
+    const next = addReservation(reservations, createReservation({
+      userId: profile.id,
+      restaurantId: restaurant.id,
+      restaurantName: restaurant.name,
+      address: localize(restaurant.address, language),
+      tableId: selectedTable.id,
+      date,
+      time,
+      guests,
+      request,
+    }));
+    setReservations(next);
+    try { localStorage.setItem(RESERVATIONS_KEY, JSON.stringify(next)); }
+    catch { setStorageUnavailable(true); }
+  }
+
+  function cancelUserReservation(id: string) {
+    if (!profile) return;
+    const next = cancelReservation(reservations, id, profile.id);
+    setReservations(next);
+    try { localStorage.setItem(RESERVATIONS_KEY, JSON.stringify(next)); }
+    catch { setStorageUnavailable(true); }
+  }
+
   return (
     <main id="top" className="site-shell">
       <header className="site-header">
         <OturLogo />
         <nav className="desktop-nav" aria-label={t.explore}><a href="#discover">{t.explore}</a><a href="#partners">{t.partners}</a></nav>
         <div className="header-actions">
+          <button className="account-button" type="button" onClick={() => profile ? setProfileOpen(true) : setAccountOpen(true)}><UserRound /><span>{profile ? profile.name.split(' ')[0] : t.signIn}</span></button>
           <div className="language-switch" aria-label="AZ · EN · RU">{(['AZ', 'EN', 'RU'] as Language[]).map((item) => <button key={item} type="button" className={language === item ? 'active' : ''} onClick={() => setLanguage(item)}>{item}</button>)}</div>
           <button className="mobile-menu-button" type="button" onClick={() => setMobileMenuOpen((open) => !open)} aria-expanded={mobileMenuOpen} aria-label={t.explore}>{mobileMenuOpen ? <X /> : <Menu />}</button>
         </div>
@@ -233,7 +305,7 @@ export default function Home() {
             <div className="plan-titlebar"><div><span>{restaurant.name} · {t.floorEvening}</span><h3>{t.choose}</h3></div><div className="availability-key"><span><i className="key-available" />{t.available}</span><span><i className="key-reserved" />{t.reserved}</span><span><i className="key-selected" />{t.selected}</span><strong>{availableCount} {t.tables}</strong></div></div>
             <div className="seat-finder"><label htmlFor="seat-preference"><Sparkles />{t.seatPreference}</label><select id="seat-preference" value={seatPreference} onChange={(event) => setSeatPreference(event.target.value)}><option value="any">{t.anySeat}</option>{['window', 'quiet', 'terrace', 'sea', 'private'].map((tag) => <option key={tag} value={tag}>{localizeTag(tag, language)}</option>)}</select><Button variant="outline" type="button" onClick={suggestSeat}>{t.suggestSeat}<ArrowRight /></Button></div>
             {suggestionStatus && suggestionKey === currentSuggestionKey && <output className="seat-feedback">{suggestionStatus === 'matched' ? `${selectedTable.id} · ${t.matchNote}` : t.noMatch}</output>}
-            <FloorPlan restaurant={restaurant} tables={availability} selectedId={selectedTable.available ? selectedTable.id : ''} language={language} labels={labels} scale={planScale} onScale={setPlanScale} onSelect={(id) => { setSelectedTableId(id); setSelectedSeat(1); setSuggestionStatus(null); setExperienceView('plan'); }} /><p className="plan-help"><CircleDot />{t.planHelp}</p>
+            <FloorPlan restaurant={restaurant} tables={availability} selectedId={selectedTable.available ? selectedTable.id : ''} language={language} labels={labels} scale={planScale} onScale={setPlanScale} onSelect={(id) => { setSelectedTableId(id); setSuggestionStatus(null); setExperienceView('plan'); }} /><p className="plan-help"><CircleDot />{t.planHelp}</p>
           </section>
           <aside className="table-context">
             <span className="context-kicker">{t.whyThis}</span>
@@ -247,11 +319,12 @@ export default function Home() {
           <section className="spatial-preview table-view" aria-label={t.previewHint}>
             {experienceView === 'table' && <>
               <button className="table-focus-back" type="button" onClick={() => setExperienceView('plan')}><ArrowLeft />{t.back}</button>
-              <TableFocus restaurant={restaurant} table={selectedTable} language={language} labels={labels} selectedSeat={activeSeat} onSeatSelect={setSelectedSeat} onReserve={() => setReservationOpen(true)} />
+              <TableFocus restaurant={restaurant} table={selectedTable} language={language} labels={labels} onReserve={beginReservation} />
             </>}
           </section>
         </div>
         <div className="restaurant-gallery"><div className="gallery-copy"><span className="overline">{restaurant.name} · 04</span><h3>{t.gallery}</h3><p>{t.galleryIntro}</p></div>{[0, 1, 2, 3].map((scene) => <SceneImage key={scene} src={restaurant.image} scene={scene} label={`${restaurant.name} · ${t.gallery}`} />)}</div>
+        <RestaurantDetails restaurant={restaurant} language={language} labels={labels} />
       </section>
 
       <section id="partners" className="partner-section">
@@ -262,7 +335,10 @@ export default function Home() {
       </section>
 
       <footer className="site-footer"><OturLogo /><p>{t.promise}<br />Baku, Azerbaijan</p><span>{t.prototype}</span></footer>
-      <BookingDialog open={reservationOpen} onOpenChange={setReservationOpen} restaurant={restaurant} table={selectedTable} date={date} time={time} guests={guests} seat={activeSeat} language={language} labels={labels} />
+      <nav className="mobile-dock" aria-label={t.account}><a href="#top"><House /><span>OTUR</span></a><a href="#discover"><UtensilsCrossed /><span>{t.explore}</span></a><button type="button" onClick={() => profile ? setProfileOpen(true) : setAccountOpen(true)}><UserRound /><span>{profile ? t.reservationsNav : t.signIn}</span></button></nav>
+      {profile && <BookingDialog open={reservationOpen} onOpenChange={setReservationOpen} restaurant={restaurant} table={selectedTable} date={date} time={time} guests={guests} profile={profile} onConfirm={confirmReservation} language={language} labels={labels} />}
+      <AccountDialog open={accountOpen} onOpenChange={(open) => { setAccountOpen(open); if (!open && !profile) setPendingReservation(false); }} accounts={accounts} onAccountsChange={updateAccounts} onSignedIn={signIn} labels={labels} />
+      {profile && <ProfileDialog open={profileOpen} onOpenChange={setProfileOpen} profile={profile} reservations={reservations} onCancel={cancelUserReservation} onSignOut={signOut} labels={labels} />}
       <PartnerDialog open={partnerOpen} onOpenChange={setPartnerOpen} labels={labels} />
     </main>
   );

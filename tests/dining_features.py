@@ -66,16 +66,24 @@ def audit(browser, url, width, mobile):
     expect(page.locator(".plan-side")).to_be_visible()
     progress.nth(1).click()
     expect(page.locator(".table-focus")).to_be_visible()
-    expect(page.locator(".seat-choice")).to_have_count(2)
-    page.locator(".seat-choice").nth(1).click()
-    expect(page.locator(".seat-choice").nth(1)).to_have_attribute("aria-pressed", "true")
-    expect(page.locator(".seat-focus-summary")).to_contain_text("Seat 2")
+    expect(page.locator(".seat-choice")).to_have_count(0)
+    expect(page.locator(".table-focus-summary")).to_contain_text(selected)
     expect(page.locator(".spatial-preview.seat-view")).to_have_count(0)
     expect(page.locator("canvas[data-room-model='true']")).to_have_count(0)
-    page.locator(".reserve-selected-seat").click()
-    expect(page.locator(".sheet-summary")).to_contain_text("Seat 2")
-    page.locator("#guest-name").fill("Test Guest")
-    page.locator("#guest-phone").fill("+994 50 123 45 67")
+    page.locator(".reserve-selected-table").click()
+    expect(page.locator(".account-dialog")).to_be_visible()
+    if width >= 1000:
+        page.locator(".account-tabs button").nth(1).click()
+        page.locator("#account-name").fill("Aylin Test")
+        page.locator("#account-email").fill("aylin@example.com")
+        page.locator("#account-phone").fill("+994 50 123 45 67")
+        page.locator("#account-password").fill("calm-table-26")
+        page.locator(".account-form .confirm-button").click()
+    else:
+        page.locator(".demo-account-button").click()
+    expect(page.locator(".sheet-summary")).to_contain_text(selected)
+    page.locator("#guest-request").fill("Window if possible")
+    page.locator(".policy-check input").check()
     page.locator(".confirm-button").click()
     expect(page.locator(".prototype-note")).to_contain_text("No reservation has been sent")
     with page.expect_download() as result:
@@ -100,9 +108,27 @@ def audit(browser, url, width, mobile):
     assert set(fields) == {"restaurant", "table", "date", "time", "guests"}
     assert fields["table"] == [selected] and fields["date"] == [chosen_date]
     assert urlparse(shared).path == urlparse(url).path
-    storage = page.evaluate("JSON.stringify(localStorage)")
-    assert "Test Guest" not in storage and "123 45 67" not in storage
+    stored_reservations = json.loads(page.evaluate("localStorage.getItem('otur-demo-reservations-v1')"))
+    assert stored_reservations[0]["request"] == "Window if possible"
+    assert stored_reservations[0]["status"] == "confirmed"
     page.screenshot(path=f"work/features/{browser.browser_type.name}-{width}-confirmation.png")
+
+    page.locator(".done-button").click()
+    page.locator(".account-button").click()
+    expect(page.locator(".reservation-item")).to_have_count(1)
+    page.locator(".reservation-item > button").click()
+    page.locator(".cancel-confirm button").nth(1).click()
+    expect(page.locator(".reservation-item")).to_have_class(re.compile("status-cancelled"))
+    if width >= 1000:
+        page.locator(".sign-out-button").click()
+        page.locator(".reserve-selected-table").click()
+        page.locator("#account-email").fill("aylin@example.com")
+        page.locator("#account-password").fill("calm-table-26")
+        page.locator(".account-form .confirm-button").click()
+        expect(page.locator(".reservation-sheet")).to_be_visible()
+        page.keyboard.press("Escape")
+    else:
+        page.locator("[data-slot='dialog-close']").click()
 
     restored = context.new_page()
     restored.goto(shared, wait_until="networkidle")
