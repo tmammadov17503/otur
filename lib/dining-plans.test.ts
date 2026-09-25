@@ -63,7 +63,7 @@ void test('calendar downloads use UTC for Baku time and contain reservation deta
   assert.match(calendar, /DTSTART:20260912T160000Z/);
   assert.match(calendar, /DTEND:20260912T180000Z/);
   assert.match(calendar, /DTSTAMP:20260903T120000Z/);
-  assert.match(calendar.replace(/\r\n /g, ''), /Free cancellation/);
+  assert.match(calendar.replace(/\r\n /g, ''), /Cancel this confirmed reservation directly in OTUR/);
   assert.match(calendar, /STATUS:CONFIRMED/);
   assert.ok(calendar.split('\r\n').every((line) => new TextEncoder().encode(line).length <= 75));
   assert.match(calendar, /END:VCALENDAR\r\n$/);

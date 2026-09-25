@@ -90,7 +90,7 @@ def audit(browser, url, width, mobile):
     assert download.suggested_filename.endswith(".ics")
     calendar = Path(download.path()).read_text(encoding="utf-8").replace("\n ", "")
     assert "BEGIN:VCALENDAR" in calendar and "STATUS:CONFIRMED" in calendar
-    assert "Free cancellation" in calendar
+    assert "Cancel this confirmed reservation directly in OTUR" in calendar
     assert "Test Guest" not in calendar and "123 45 67" not in calendar
 
     # Exercise the copy fallback without opening an operating-system share dialog.
@@ -115,6 +115,16 @@ def audit(browser, url, width, mobile):
     expect(page.locator(".manage-reservation-note")).to_contain_text("cancel")
     page.locator(".manage-reservation-button").click()
     expect(page.locator(".reservation-item")).to_have_count(1)
+    # A confirmed reservation must remain cancellable even when its time is
+    # already inside the old two-hour cutoff (the case reported from mobile).
+    page.evaluate("""() => {
+      const reservations = JSON.parse(localStorage.getItem('otur-reservations-v2'));
+      reservations[0] = {...reservations[0], date: '2000-01-01', time: '00:00'};
+      localStorage.setItem('otur-reservations-v2', JSON.stringify(reservations));
+    }""")
+    page.reload(wait_until="networkidle")
+    page.locator(".account-button").click()
+    expect(page.locator(".cancel-reservation-button")).to_be_enabled()
     page.locator(".cancel-reservation-button").click()
     page.locator(".cancel-confirm button").nth(1).click()
     expect(page.locator(".reservation-item")).to_have_class(re.compile("status-cancelled"))
@@ -123,6 +133,7 @@ def audit(browser, url, width, mobile):
     assert cancelled_reservations[0]["status"] == "cancelled"
     assert cancelled_reservations[0]["cancelledAt"]
     page.locator(".sign-out-button").click()
+    page.locator(".see-table-button").click()
     page.locator(".reserve-selected-table").click()
     page.locator("#account-phone").fill("50 123 45 67")
     page.locator("#account-password").fill("calm-table-26")

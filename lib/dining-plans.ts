@@ -107,7 +107,7 @@ export function createCalendar(plan: DiningPlan, restaurantName: string, now = n
     `DTSTAMP:${calendarTime(now)}`, `DTSTART:${calendarTime(start)}`, `DTEND:${calendarTime(end)}`,
     `SUMMARY:${escapeCalendar(`OTUR reservation · ${restaurantName}`)}`,
     `LOCATION:${escapeCalendar(`${restaurantName}, Baku, Azerbaijan`)}`,
-    `DESCRIPTION:${escapeCalendar(`Table ${plan.tableId} for ${plan.guests} guests. Free cancellation is available until two hours before the reservation.`)}`,
+    `DESCRIPTION:${escapeCalendar(`Table ${plan.tableId} for ${plan.guests} guests. Cancel this confirmed reservation directly in OTUR.`)}`,
     'STATUS:CONFIRMED', 'TRANSP:OPAQUE', 'END:VEVENT', 'END:VCALENDAR', '',
   ].map(foldCalendarLine).join('\r\n');
 }

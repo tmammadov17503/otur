@@ -64,6 +64,7 @@ void test('reservations are added and cancelled immutably for their owner', () =
   assert.equal(cancelled[0].status, 'cancelled');
   assert.equal(cancelled[0].cancelledAt, '2026-09-24T10:00:00.000Z');
   assert.deepEqual(cancelReservation(added, 'r-1', 'another-user', '2026-09-24T10:00:00.000Z'), added);
-  assert.equal(canCancelReservation(reservation, new Date('2026-10-02T12:00:00.000Z')), true);
-  assert.equal(canCancelReservation(reservation, new Date('2026-10-02T16:00:01.000Z')), false);
+  assert.equal(canCancelReservation(reservation), true);
+  assert.equal(canCancelReservation({ ...reservation, date: '2026-09-24', time: '10:00' }), true);
+  assert.equal(canCancelReservation(cancelled[0]), false);
 });

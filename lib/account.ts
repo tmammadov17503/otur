@@ -168,7 +168,6 @@ export function cancelReservation(reservations: Reservation[], reservationId: st
     : item);
 }
 
-export function canCancelReservation(reservation: Reservation, now = new Date()) {
-  const visit = new Date(`${reservation.date}T${reservation.time}:00+04:00`);
-  return reservation.status === 'confirmed' && visit.getTime() - now.getTime() >= 2 * 60 * 60 * 1000;
+export function canCancelReservation(reservation: Reservation) {
+  return reservation.status === 'confirmed';
 }
