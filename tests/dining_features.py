@@ -111,12 +111,17 @@ def audit(browser, url, width, mobile):
     assert stored_reservations[0]["status"] == "confirmed"
     page.screenshot(path=f"work/features/{browser.browser_type.name}-{width}-confirmation.png")
 
-    page.locator(".done-button").click()
-    page.locator(".account-button").click()
+    expect(page.locator(".manage-reservation-button")).to_be_visible()
+    expect(page.locator(".manage-reservation-note")).to_contain_text("cancel")
+    page.locator(".manage-reservation-button").click()
     expect(page.locator(".reservation-item")).to_have_count(1)
-    page.locator(".reservation-item > button").click()
+    page.locator(".cancel-reservation-button").click()
     page.locator(".cancel-confirm button").nth(1).click()
     expect(page.locator(".reservation-item")).to_have_class(re.compile("status-cancelled"))
+    expect(page.locator(".reservation-item .reservation-status")).to_contain_text("Cancelled")
+    cancelled_reservations = json.loads(page.evaluate("localStorage.getItem('otur-reservations-v2')"))
+    assert cancelled_reservations[0]["status"] == "cancelled"
+    assert cancelled_reservations[0]["cancelledAt"]
     page.locator(".sign-out-button").click()
     page.locator(".reserve-selected-table").click()
     page.locator("#account-phone").fill("50 123 45 67")

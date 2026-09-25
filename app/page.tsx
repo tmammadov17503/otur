@@ -249,6 +249,11 @@ export default function Home() {
     catch { setStorageUnavailable(true); }
   }
 
+  function manageReservations() {
+    setReservationOpen(false);
+    window.setTimeout(() => setProfileOpen(true), 0);
+  }
+
   return (
     <main id="top" className="site-shell">
       <header className="site-header">
@@ -335,7 +340,7 @@ export default function Home() {
 
       <footer className="site-footer"><OturLogo /><p>{t.promise}<br />Baku, Azerbaijan</p><span>{t.footerNote}</span></footer>
       <nav className="mobile-dock" aria-label={t.account}><a href="#top"><House /><span>OTUR</span></a><a href="#discover"><UtensilsCrossed /><span>{t.explore}</span></a><button type="button" onClick={() => profile ? setProfileOpen(true) : setAccountOpen(true)}><UserRound /><span>{profile ? t.reservationsNav : t.signIn}</span></button></nav>
-      {profile && <BookingDialog open={reservationOpen} onOpenChange={setReservationOpen} restaurant={restaurant} table={selectedTable} date={date} time={time} guests={guests} profile={profile} onConfirm={confirmReservation} language={language} labels={labels} />}
+      {profile && <BookingDialog open={reservationOpen} onOpenChange={setReservationOpen} restaurant={restaurant} table={selectedTable} date={date} time={time} guests={guests} profile={profile} onConfirm={confirmReservation} onManageReservations={manageReservations} language={language} labels={labels} />}
       <AccountDialog open={accountOpen} onOpenChange={(open) => { setAccountOpen(open); if (!open && !profile) setPendingReservation(false); }} accounts={accounts} onAccountsChange={updateAccounts} onSignedIn={signIn} labels={labels} />
       {profile && <ProfileDialog open={profileOpen} onOpenChange={setProfileOpen} profile={profile} reservations={reservations} onCancel={cancelUserReservation} onSignOut={signOut} labels={labels} />}
       <PartnerDialog open={partnerOpen} onOpenChange={setPartnerOpen} labels={labels} />

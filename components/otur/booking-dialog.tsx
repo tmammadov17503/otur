@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { CalendarPlus, Check, Eye, Mail, Phone, Share2 } from 'lucide-react';
+import { CalendarPlus, Check, ClipboardList, Eye, Mail, Phone, Share2 } from 'lucide-react';
 
 import { TableGlyph } from '@/components/otur/table-glyph';
 import { Button } from '@/components/ui/button';
@@ -22,11 +22,12 @@ type BookingDialogProps = {
   guests: number;
   profile: AccountProfile;
   onConfirm: (request: string) => void;
+  onManageReservations: () => void;
   language: Language;
   labels: Record<string, string>;
 };
 
-export function BookingDialog({ open, onOpenChange, restaurant, table, date, time, guests, profile, onConfirm, language, labels }: BookingDialogProps) {
+export function BookingDialog({ open, onOpenChange, restaurant, table, date, time, guests, profile, onConfirm, onManageReservations, language, labels }: BookingDialogProps) {
   const [confirmed, setConfirmed] = useState(false);
   const [request, setRequest] = useState('');
   const [policyAccepted, setPolicyAccepted] = useState(false);
@@ -79,6 +80,11 @@ export function BookingDialog({ open, onOpenChange, restaurant, table, date, tim
     setConfirmed(true);
   }
 
+  function manageReservation() {
+    changeOpen(false);
+    onManageReservations();
+  }
+
   if (confirmed) {
     return (
       <Dialog open={open} onOpenChange={changeOpen}>
@@ -105,7 +111,11 @@ export function BookingDialog({ open, onOpenChange, restaurant, table, date, tim
           </div>
           <output aria-live="polite">{status}</output>
           {shareLink && <input className="share-link" aria-label={labels.shareFallback} value={shareLink} readOnly onFocus={(event) => event.currentTarget.select()} />}
-          <Button type="button" className="done-button" onClick={() => changeOpen(false)}>{labels.done}</Button>
+          <div className="manage-reservation-panel">
+            <p className="manage-reservation-note">{labels.manageReservationNote}</p>
+            <Button type="button" className="manage-reservation-button" onClick={manageReservation}><ClipboardList />{labels.manageReservation}</Button>
+          </div>
+          <Button type="button" variant="outline" className="done-button" onClick={() => changeOpen(false)}>{labels.done}</Button>
         </DialogContent>
       </Dialog>
     );

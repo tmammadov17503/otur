@@ -35,7 +35,7 @@ export function ProfileDialog({ open, onOpenChange, profile, reservations, onCan
             return <article className={`reservation-item status-${item.status}`} key={item.id}>
               <div className="reservation-status"><span>{item.status === 'confirmed' ? labels.confirmed : labels.cancelled}</span><strong>{item.restaurantName} · {item.tableId}</strong></div>
               <div className="reservation-meta"><span><CalendarDays />{item.date} · {item.time}</span><span><Users />{item.guests} {labels.seats}</span><span><MapPin />{item.address}</span></div>
-              {item.status === 'confirmed' && (confirming === item.id ? <div className="cancel-confirm"><p>{labels.cancelQuestion}</p><Button type="button" variant="outline" onClick={() => setConfirming('')}>{labels.keepReservation}</Button><Button type="button" onClick={() => { onCancel(item.id); setConfirming(''); }}>{labels.yesCancel}</Button></div> : <Button type="button" variant="outline" disabled={!cancellable} onClick={() => setConfirming(item.id)}>{cancellable ? labels.cancelReservation : labels.contactToCancel}</Button>)}
+              {item.status === 'confirmed' && (confirming === item.id ? <div className="cancel-confirm"><p>{labels.cancelQuestion}</p><Button type="button" variant="outline" onClick={() => setConfirming('')}>{labels.keepReservation}</Button><Button type="button" onClick={() => { onCancel(item.id); setConfirming(''); }}>{labels.yesCancel}</Button></div> : <Button type="button" className="cancel-reservation-button" variant="outline" disabled={!cancellable} onClick={() => setConfirming(item.id)}>{cancellable ? labels.cancelReservation : labels.contactToCancel}</Button>)}
             </article>;
           })}
         </section>
